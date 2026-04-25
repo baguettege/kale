@@ -1,0 +1,65 @@
+use crate::ast::{BinOp, Block, Ident, Literal, UnOp};
+
+#[derive(Debug, Clone)]
+pub enum Expr {
+    Literal(Literal),
+    Ident(Ident),
+    Call(Call),
+    Binary(Binary),
+    Unary(Unary),
+    List(List),
+    Closure(Closure),
+    Member(Member),
+    Index(Index),
+}
+
+node! {
+    Call {
+        callee: Box<Expr>,
+        args: Vec<Expr>,
+    }
+}
+
+node! {
+    Binary {
+        lhs: Box<Expr>,
+        op: BinOp,
+        rhs: Box<Expr>,
+    }
+}
+
+node! {
+    Unary {
+        op: UnOp,
+        expr: Box<Expr>,
+    }
+}
+
+node! {
+    List {
+        elements: Vec<Expr>,
+    }
+}
+
+node! {
+    Closure {
+        params: Vec<Ident>,
+        body: Block,
+    }
+}
+
+node! {
+    Member {
+        object: Box<Expr>,
+        property: Ident,
+    }
+}
+
+node! {
+    Index {
+        object: Box<Expr>,
+        index: Box<Expr>,
+    }
+}
+
+impl_from!(Expr => Literal, Ident, Call, Binary, Unary, List, Closure, Member, Index);
