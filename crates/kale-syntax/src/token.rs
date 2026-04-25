@@ -21,6 +21,7 @@ pub enum Token {
     Le,
     Gt,
     Ge,
+    Is,
 
     Not,
     And,
@@ -47,40 +48,55 @@ pub enum Token {
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Token::Nil => write!(f, "nil"),
-            Token::Num(n) => write!(f, "{n}"),
-            Token::Bool(b) => write!(f, "{b}"),
-            Token::Str(s) => write!(f, "\"{s}\""),
-            Token::Ident(s) => write!(f, "{s}"),
-            Token::Assign => write!(f, "="),
-            Token::Star => write!(f, "*"),
-            Token::Slash => write!(f, "/"),
-            Token::Plus => write!(f, "+"),
-            Token::Minus => write!(f, "-"),
-            Token::EqEq => write!(f, "=="),
-            Token::Ne => write!(f, "!="),
-            Token::Lt => write!(f, "<"),
-            Token::Le => write!(f, "<="),
-            Token::Gt => write!(f, ">"),
-            Token::Ge => write!(f, ">="),
-            Token::Not => write!(f, "not"),
-            Token::And => write!(f, "and"),
-            Token::Or => write!(f, "or"),
-            Token::LParen => write!(f, "("),
-            Token::RParen => write!(f, ")"),
-            Token::LBrace => write!(f, "{{"),
-            Token::RBrace => write!(f, "}}"),
-            Token::LBrack => write!(f, "["),
-            Token::RBrack => write!(f, "]"),
-            Token::Comma => write!(f, ","),
-            Token::Semicolon => write!(f, ";"),
-            Token::Dot => write!(f, "."),
-            Token::Module => write!(f, "module"),
-            Token::Fn => write!(f, "fn"),
-            Token::Return => write!(f, "return"),
-            Token::If => write!(f, "if"),
-            Token::Else => write!(f, "else"),
-            Token::While => write!(f, "while"),
+            Self::Nil => write!(f, "nil"),
+            Self::Num(n) => write!(f, "{n}"),
+            Self::Bool(b) => write!(f, "{b}"),
+            Self::Str(s) => write!(f, "\"{s}\""),
+            Self::Ident(s) => write!(f, "{s}"),
+            Self::Assign => write!(f, "="),
+            Self::Star => write!(f, "*"),
+            Self::Slash => write!(f, "/"),
+            Self::Plus => write!(f, "+"),
+            Self::Minus => write!(f, "-"),
+            Self::EqEq => write!(f, "=="),
+            Self::Ne => write!(f, "!="),
+            Self::Lt => write!(f, "<"),
+            Self::Le => write!(f, "<="),
+            Self::Gt => write!(f, ">"),
+            Self::Ge => write!(f, ">="),
+            Self::Is => write!(f, "is"),
+            Self::Not => write!(f, "not"),
+            Self::And => write!(f, "and"),
+            Self::Or => write!(f, "or"),
+            Self::LParen => write!(f, "("),
+            Self::RParen => write!(f, ")"),
+            Self::LBrace => write!(f, "{{"),
+            Self::RBrace => write!(f, "}}"),
+            Self::LBrack => write!(f, "["),
+            Self::RBrack => write!(f, "]"),
+            Self::Comma => write!(f, ","),
+            Self::Semicolon => write!(f, ";"),
+            Self::Dot => write!(f, "."),
+            Self::Module => write!(f, "module"),
+            Self::Fn => write!(f, "fn"),
+            Self::Return => write!(f, "return"),
+            Self::If => write!(f, "if"),
+            Self::Else => write!(f, "else"),
+            Self::While => write!(f, "while"),
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TokenStream(pub Vec<Token>);
+
+impl fmt::Display for TokenStream {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let elements = self.0
+            .iter()
+            .map(|tok| format!("{tok}"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        write!(f, "[{elements}]")
     }
 }

@@ -5,18 +5,19 @@ mod types {
     impl Display for BinOp {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
             match self {
-                BinOp::Mul => write!(f, "*"),
-                BinOp::Div => write!(f, "/"),
-                BinOp::Add => write!(f, "+"),
-                BinOp::Sub => write!(f, "-"),
-                BinOp::Lt => write!(f, "<"),
-                BinOp::Le => write!(f, "<="),
-                BinOp::Gt => write!(f, ">"),
-                BinOp::Ge => write!(f, ">="),
-                BinOp::Eq => write!(f, "=="),
-                BinOp::Ne => write!(f, "!="),
-                BinOp::And => write!(f, "and"),
-                BinOp::Or => write!(f, "or"),
+                Self::Mul => write!(f, "*"),
+                Self::Div => write!(f, "/"),
+                Self::Add => write!(f, "+"),
+                Self::Sub => write!(f, "-"),
+                Self::Lt => write!(f, "<"),
+                Self::Le => write!(f, "<="),
+                Self::Gt => write!(f, ">"),
+                Self::Ge => write!(f, ">="),
+                Self::Eq => write!(f, "=="),
+                Self::Ne => write!(f, "!="),
+                Self::Is => write!(f, "is"),
+                Self::And => write!(f, "and"),
+                Self::Or => write!(f, "or"),
             }
         }
     }
@@ -24,8 +25,8 @@ mod types {
     impl Display for UnOp {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
             match self {
-                UnOp::Not => write!(f, "not"),
-                UnOp::Neg => write!(f, "-"),
+                Self::Not => write!(f, "not"),
+                Self::Neg => write!(f, "-"),
             }
         }
     }
@@ -33,10 +34,10 @@ mod types {
     impl Display for Literal {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
             match self {
-                Literal::Nil => write!(f, "nil"),
-                Literal::Num(val) => write!(f, "{val}"),
-                Literal::Bool(val) => write!(f, "{val}"),
-                Literal::Str(val) => write!(f, "\"{val}\""),
+                Self::Nil => write!(f, "nil"),
+                Self::Num(val) => write!(f, "{val}"),
+                Self::Bool(val) => write!(f, "{val}"),
+                Self::Str(val) => write!(f, "\"{val}\""),
             }
         }
     }
@@ -49,15 +50,15 @@ mod expr {
     impl Display for Expr {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result {
             match self {
-                Expr::Literal(node) => write!(f, "{node}"),
-                Expr::Ident(node) => write!(f, "{node}"),
-                Expr::Call(node) => write!(f, "{node}"),
-                Expr::Binary(node) => write!(f, "{node}"),
-                Expr::Unary(node) => write!(f, "{node}"),
-                Expr::List(node) => write!(f, "{node}"),
-                Expr::Closure(node) => write!(f, "{node}"),
-                Expr::Member(node) => write!(f, "{node}"),
-                Expr::Index(node) => write!(f, "{node}"),
+                Self::Literal(node) => write!(f, "{node}"),
+                Self::Ident(node) => write!(f, "{node}"),
+                Self::Call(node) => write!(f, "{node}"),
+                Self::Binary(node) => write!(f, "{node}"),
+                Self::Unary(node) => write!(f, "{node}"),
+                Self::List(node) => write!(f, "{node}"),
+                Self::Closure(node) => write!(f, "{node}"),
+                Self::Member(node) => write!(f, "{node}"),
+                Self::Index(node) => write!(f, "{node}"),
             }
         }
     }

@@ -44,27 +44,35 @@ trait Type {
 impl Object {
     pub fn type_name(&self) -> &'static str {
         match self {
-            Object::Nil(_) => Nil::type_name(),
-            Object::Num(_) => Num::type_name(),
-            Object::Bool(_) => Bool::type_name(),
-            Object::Str(_) => Str::type_name(),
-            Object::List(_) => List::type_name(),
-            Object::Closure(_) => Closure::type_name(),
-            Object::Builtin(_) => Builtin::type_name(),
-            Object::Module(_) => Module::type_name(),
+            Self::Nil(_) => Nil::type_name(),
+            Self::Num(_) => Num::type_name(),
+            Self::Bool(_) => Bool::type_name(),
+            Self::Str(_) => Str::type_name(),
+            Self::List(_) => List::type_name(),
+            Self::Closure(_) => Closure::type_name(),
+            Self::Builtin(_) => Builtin::type_name(),
+            Self::Module(_) => Module::type_name(),
         }
     }
 
     pub fn methods(&self) -> &'static [Builtin] {
         match self {
-            Object::Nil(_) => Nil::methods(),
-            Object::Num(_) => Num::methods(),
-            Object::Bool(_) => Bool::methods(),
-            Object::Str(_) => Str::methods(),
-            Object::List(_) => List::methods(),
-            Object::Closure(_) => Closure::methods(),
-            Object::Builtin(_) => Builtin::methods(),
-            Object::Module(_) => Module::methods(),
+            Self::Nil(_) => Nil::methods(),
+            Self::Num(_) => Num::methods(),
+            Self::Bool(_) => Bool::methods(),
+            Self::Str(_) => Str::methods(),
+            Self::List(_) => List::methods(),
+            Self::Closure(_) => Closure::methods(),
+            Self::Builtin(_) => Builtin::methods(),
+            Self::Module(_) => Module::methods(),
+        }
+    }
+
+    pub fn is_truthy(&self) -> bool {
+        match self {
+            Self::Nil(_) => false,
+            Self::Bool(b) => b.0,
+            _ => true,
         }
     }
 }
@@ -72,14 +80,14 @@ impl Object {
 impl fmt::Display for Object {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Object::Nil(val) => write!(f, "{val}"),
-            Object::Num(val) => write!(f, "{val}"),
-            Object::Bool(val) => write!(f, "{val}"),
-            Object::Str(val) => write!(f, "{val}"),
-            Object::List(val) => write!(f, "{}", val.borrow()),
-            Object::Closure(val) => write!(f, "{val}"),
-            Object::Builtin(val) => write!(f, "{val}"),
-            Object::Module(val) => write!(f, "{}", val.borrow()),
+            Self::Nil(val) => write!(f, "{val}"),
+            Self::Num(val) => write!(f, "{val}"),
+            Self::Bool(val) => write!(f, "{val}"),
+            Self::Str(val) => write!(f, "{val}"),
+            Self::List(val) => write!(f, "{}", val.borrow()),
+            Self::Closure(val) => write!(f, "{val}"),
+            Self::Builtin(val) => write!(f, "{val}"),
+            Self::Module(val) => write!(f, "{}", val.borrow()),
         }
     }
 }

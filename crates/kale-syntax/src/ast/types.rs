@@ -1,6 +1,9 @@
+use num_enum::TryFromPrimitive;
+
 pub type Ident = String;
 
-#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, TryFromPrimitive)]
 pub enum BinOp {
     Mul,
     Div,
@@ -15,19 +18,21 @@ pub enum BinOp {
 
     Eq,
     Ne,
+    Is,
 
     And,
 
     Or,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, TryFromPrimitive)]
 pub enum UnOp {
     Not,
     Neg,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     Nil,
     Num(f64),
