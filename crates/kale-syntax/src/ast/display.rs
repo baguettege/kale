@@ -122,7 +122,7 @@ mod expr {
 
 mod stmt {
     use std::fmt::{Display, Formatter, Result};
-    use crate::ast::{Assign, Block, FnDef, Ident, If, Module, Return, Stmt, While};
+    use crate::ast::{Assign, Block, Expr, FnDef, Ident, If, Module, Return, Stmt, While};
 
     struct Printer {
         indent: usize,
@@ -133,93 +133,110 @@ mod stmt {
             Self { indent: 0 }
         }
 
-        fn indent(&self, f: &mut Formatter) -> Result {
+        fn write_indent(&mut self, f: &mut Formatter<'_>) -> Result {
             write!(f, "{}", "    ".repeat(self.indent))
         }
 
-        fn print_stmt(&mut self, stmt: &Stmt, f: &mut Formatter) -> Result {
-            self.indent(f)?;
-            write!(f, "{}", stmt)
+        fn with_indent<F>(&mut self, f: F) -> Result
+        where
+            F: FnOnce(&mut Self) -> Result,
+        {
+            self.indent += 1;
+            let result = f(self);
+            self.indent -= 1;
+            result
+        }
+
+        fn print_stmt(&mut self, stmt: &Stmt, f: &mut Formatter<'_>) -> Result {
+            self.write_indent(f)?;
+            match stmt {
+                Stmt::Expr(node) => self.print_expr(node, f),
+                Stmt::Module(node) => self.print_module(node, f),
+                Stmt::FnDef(node) => self.print_fndef(node, f),
+                Stmt::Assign(node) => self.print_assign(node, f),
+                Stmt::If(node) => self.print_if(node, f),
+                Stmt::While(node) => self.print_while(node, f),
+                Stmt::Return(node) => self.print_return(node, f),
+            }
         }
 
         fn print_block(&mut self, block: &Block, f: &mut Formatter<'_>) -> Result {
             writeln!(f, "{{")?;
 
-            self.indent += 1;
-            for stmt in &block.0 {
-                self.print_stmt(stmt, f)?;
-                writeln!(f)?;
-            }
-            self.indent -= 1;
+            self.with_indent(|this| {
+                for stmt in &block.0 {
+                    this.print_stmt(stmt, f)?;
+                    writeln!(f)?;
+                }
+                Ok(())
+            })?;
 
-            self.indent(f)?;
-            writeln!(f, "}}")
+            self.write_indent(f)?;
+            write!(f, "}}")
         }
-    }
 
-    impl Display for Stmt {
-        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            match self {
-                Stmt::Expr(node) => write!(f, "{node}"),
-                Stmt::Module(node) => write!(f, "{node}"),
-                Stmt::FnDef(node) => write!(f, "{node}"),
-                Stmt::Assign(node) => write!(f, "{node}"),
-                Stmt::If(node) => write!(f, "{node}"),
-                Stmt::While(node) => write!(f, "{node}"),
-                Stmt::Return(node) => write!(f, "{node}"),
-            }
+        fn print_expr(&mut self, node: &Expr, f: &mut Formatter<'_>) -> Result {
+            write!(f, "{node};")
         }
-    }
 
-    impl Display for Block {
-        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            Printer::new().print_block(self, f)
+        fn print_module(&mut self, node: &Module, f: &mut Formatter<'_>) -> Result {
+            write!(f, "module {} ", node.ident)?;
+            self.print_block(&node.body, f)
         }
-    }
 
-    impl Display for Module {
-        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            write!(f, "module {} {}", self.ident, self.body)
-        }
-    }
-
-    impl Display for FnDef {
-        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            let params = self.params
+        fn print_fndef(&mut self, node: &FnDef, f: &mut Formatter<'_>) -> Result {
+            let params = node.params
                 .iter()
                 .map(Ident::as_str)
                 .collect::<Vec<_>>()
                 .join(", ");
-            write!(f, "fn {}({params}) {}", self.ident, self.body)
-        }
-    }
 
-    impl Display for Assign {
-        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            write!(f, "{} = {};", self.target, self.value)
+            write!(f, "fn {}({params}) ", node.ident)?;
+            self.print_block(&node.body, f)
         }
-    }
 
-    impl Display for If {
-        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            write!(f, "if {} {}", self.cond, self.then_branch)?;
-            if let Some(else_branch) = &self.else_branch {
-                write!(f, " else {}", else_branch)
-            } else {
-                Ok(())
+        fn print_assign(&mut self, node: &Assign, f: &mut Formatter<'_>) -> Result {
+            write!(f, "{} = {};", node.target, node.value)
+        }
+
+        fn print_if(&mut self, node: &If, f: &mut Formatter<'_>) -> Result {
+            write!(f, "if {} ", node.cond)?;
+            self.print_block(&node.then_branch, f)?;
+
+            if let Some(else_branch) = &node.else_branch {
+                write!(f, " else ")?;
+                self.print_block(else_branch, f)?;
             }
+
+            Ok(())
+        }
+
+        fn print_while(&mut self, node: &While, f: &mut Formatter<'_>) -> Result {
+            write!(f, "while {} ", node.cond)?;
+            self.print_block(&node.body, f)
+        }
+
+        fn print_return(&mut self, node: &Return, f: &mut Formatter<'_>) -> Result {
+            write!(f, "return {};", node.value)
         }
     }
 
-    impl Display for While {
-        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            write!(f, "while {} {}", self.cond, self.body)
-        }
+    macro_rules! impl_display {
+        ($target:ty => $method:ident) => {
+            impl Display for $target {
+                fn fmt(&self, f: &mut Formatter) -> Result {
+                    Printer::new().$method(self, f)
+                }
+            }
+        };
     }
 
-    impl Display for Return {
-        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-            write!(f, "return {};", self.value)
-        }
-    }
+    impl_display!(Stmt => print_stmt);
+    impl_display!(Block => print_block);
+    impl_display!(Module => print_module);
+    impl_display!(FnDef => print_fndef);
+    impl_display!(Assign => print_assign);
+    impl_display!(If => print_if);
+    impl_display!(While => print_while);
+    impl_display!(Return => print_return);
 }
