@@ -56,22 +56,27 @@ impl Interpreter {
 
         fn call_closure(
             interp: &mut Interpreter,
-            closure: &Closure,
+            closure: Mutable<Closure>,
             mut args: Vec<Object>,
         ) -> Result<Object> {
-            let prev_env = std::mem::replace(&mut interp.env, closure.env.clone());
+            let borrowed = closure.borrow();
+
+            let prev_env = std::mem::replace(&mut interp.env, borrowed.env.clone());
             interp.env.enter_scope(); // scope is discarded when prev_env is restored below
 
-            args.resize(closure.params.len(), Nil.into());
-            for (param, arg) in closure.params.iter().zip(args) {
+            args.resize(borrowed.params.len(), Nil.into());
+            for (param, arg) in borrowed.params.iter().zip(args) {
                 interp.env.define(param, arg);
             }
 
-            let result = match interp.eval_block(&closure.body) {
+            let result = match interp.eval_block(&borrowed.body) {
                 Ok(()) => Ok(Nil.into()),
                 Err(Outcome::Return(value)) => Ok(value),
                 Err(e) => Err(e),
             };
+
+            drop(borrowed);
+            closure.borrow_mut().env = interp.env.clone();
 
             interp.env = prev_env;
             result
@@ -96,7 +101,7 @@ impl Interpreter {
 
         match callee {
             Object::Function(function) => call_function(self, &function, args),
-            Object::Closure(closure) => call_closure(self, &closure, args),
+            Object::Closure(closure) => call_closure(self, closure, args),
             Object::Builtin(builtin) => Ok((builtin.func)(Args(&args))?),
             Object::Method(bound) => call_bound(&bound, args),
             _ => Err(Error::TypeError(
