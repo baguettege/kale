@@ -1,5 +1,3 @@
-use crate::tag::AstTag;
-
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("unexpected eof")]
@@ -10,8 +8,6 @@ pub enum Error {
     InvalidUtf8(#[from] std::str::Utf8Error),
     #[error("invalid data: {0}")]
     InvalidData(String),
-    #[error("invalid tag: {0:?}")]
-    InvalidTag(AstTag),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

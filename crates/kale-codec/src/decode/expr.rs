@@ -15,7 +15,7 @@ impl Decode for Expr {
             AstTag::Closure => decoder.decode::<Closure>()?.into(),
             AstTag::Member => decoder.decode::<Member>()?.into(),
             AstTag::Index => decoder.decode::<Index>()?.into(),
-            tag => return Err(Error::InvalidTag(tag)),
+            tag => return Err(Error::UnknownTag(tag as u8)),
         })
     }
 }

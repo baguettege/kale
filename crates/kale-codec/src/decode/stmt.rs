@@ -13,7 +13,7 @@ impl Decode for Stmt {
             AstTag::While => decoder.decode::<While>()?.into(),
             AstTag::Return => decoder.decode::<Return>()?.into(),
             AstTag::Expr => decoder.decode::<Expr>()?.into(),
-            tag => return Err(Error::InvalidTag(tag)),
+            tag => return Err(Error::UnknownTag(tag as u8)),
         })
     }
 }
