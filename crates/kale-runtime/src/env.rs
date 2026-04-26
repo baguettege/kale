@@ -32,10 +32,9 @@ impl Env {
         self.0.push(Scope::new());
     }
 
-    pub fn exit_scope(&mut self) -> Result<()> {
+    pub fn exit_scope(&mut self) -> Result<HashMap<Ident, Object>> {
         if self.0.len() > 1 {
-            self.0.pop();
-            Ok(())
+            Ok(self.0.pop().unwrap().0)
         } else {
             Err(Error::ScopeUnderflow)
         }

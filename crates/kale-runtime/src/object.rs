@@ -16,7 +16,7 @@ pub use nil::Nil;
 pub use num::Num;
 pub use bool::Bool;
 pub use str::Str;
-pub use builtin::Builtin;
+pub use builtin::{Builtin, BuiltinFn};
 pub use closure::Closure;
 pub use list::List;
 pub use module::Module;

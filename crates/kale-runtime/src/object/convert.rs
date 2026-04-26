@@ -21,10 +21,11 @@ macro_rules! impl_try_from {
             fn try_from(object: Object) -> Result<Self, Self::Error> {
                 match object {
                     Object::$variant(val) => Ok(val),
-                    _ => Err($crate::Error::TypeError {
-                        expected: <$inner as super::Type>::type_name(),
-                        got: object.type_name(),
-                    }),
+                    _ => Err($crate::Error::TypeError(
+                        format!("expected {}, got {}",
+                        <$inner as super::Type>::type_name(),
+                        object.type_name())
+                    )),
                 }
             }
         }

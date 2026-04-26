@@ -9,8 +9,29 @@ impl List {
         Self(elements)
     }
 
-    pub fn elements(&self) -> &[Object] {
-        &self.0
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn push(&mut self, object: Object) {
+        self.0.push(object);
+    }
+
+    pub fn pop(&mut self) -> Option<Object> {
+        self.0.pop()
+    }
+
+    pub fn get(&self, index: usize) -> Option<Object> {
+        self.0.get(index).cloned()
+    }
+
+    pub fn set(&mut self, index: usize, object: Object) -> Option<()> {
+        if index < self.0.len() {
+            self.0[index] = object;
+            Some(())
+        } else {
+            None
+        }
     }
 }
 
@@ -28,7 +49,7 @@ impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let params = self.0
             .iter()
-            .map(|elem| format!("{elem}"))
+            .map(Object::to_string)
             .collect::<Vec<_>>()
             .join(", ");
         write!(f, "[{params}]")
