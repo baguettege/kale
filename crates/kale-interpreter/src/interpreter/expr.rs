@@ -64,12 +64,12 @@ impl Interpreter {
             let prev_env = std::mem::replace(&mut interp.env, borrowed.env.clone());
             interp.env.enter_scope(); // scope is discarded when prev_env is restored below
 
-            args.resize(borrowed.params.len(), Nil.into());
-            for (param, arg) in borrowed.params.iter().zip(args) {
+            args.resize(borrowed.params().len(), Nil.into());
+            for (param, arg) in borrowed.params().iter().zip(args) {
                 interp.env.define(param, arg);
             }
 
-            let result = match interp.eval_block(&borrowed.body) {
+            let result = match interp.eval_block(borrowed.body()) {
                 Ok(()) => Ok(Nil.into()),
                 Err(Outcome::Return(value)) => Ok(value),
                 Err(e) => Err(e),

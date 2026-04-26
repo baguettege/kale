@@ -5,14 +5,22 @@ use crate::object::Builtin;
 
 #[derive(Debug, Clone)]
 pub struct Closure {
-    pub params: Vec<Ident>,
-    pub body: Block,
+    params: Vec<Ident>,
+    body: Block,
     pub env: Env,
 }
 
 impl Closure {
     pub fn new(params: Vec<Ident>, body: Block, env: Env) -> Self {
         Self { params, body, env }
+    }
+    
+    pub fn params(&self) -> &[Ident] {
+        &self.params
+    }
+    
+    pub fn body(&self) -> &Block {
+        &self.body
     }
 }
 
