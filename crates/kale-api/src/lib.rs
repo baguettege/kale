@@ -31,5 +31,5 @@ pub mod runtime {
 }
 
 pub mod interpreter {
-    pub use kale_interpreter::Interpreter;
+    pub use kale_interpreter::run;
 }

@@ -7,6 +7,8 @@ mod nil;
 mod num;
 mod str;
 mod convert;
+mod function;
+mod method;
 
 use std::cell::RefCell;
 use std::fmt;
@@ -17,9 +19,11 @@ pub use num::Num;
 pub use bool::Bool;
 pub use str::Str;
 pub use builtin::{Builtin, BuiltinFn};
+pub use function::Function;
 pub use closure::Closure;
 pub use list::List;
 pub use module::Module;
+pub use method::{BoundMethod, Method};
 
 pub type Frozen<T> = Rc<T>;
 pub type Mutable<T> = Rc<RefCell<T>>;
@@ -31,9 +35,11 @@ pub enum Object {
     Bool(Frozen<Bool>),
     Str(Frozen<Str>),
     List(Mutable<List>),
+    Function(Frozen<Function>),
     Closure(Frozen<Closure>),
     Builtin(&'static Builtin),
     Module(Mutable<Module>),
+    Method(Frozen<BoundMethod>),
 }
 
 trait Type {
@@ -49,9 +55,11 @@ impl Object {
             Self::Bool(_) => Bool::type_name(),
             Self::Str(_) => Str::type_name(),
             Self::List(_) => List::type_name(),
+            Self::Function(_) => Function::type_name(),
             Self::Closure(_) => Closure::type_name(),
             Self::Builtin(_) => Builtin::type_name(),
             Self::Module(_) => Module::type_name(),
+            Self::Method(_) => BoundMethod::type_name(),
         }
     }
 
@@ -62,9 +70,11 @@ impl Object {
             Self::Bool(_) => Bool::methods(),
             Self::Str(_) => Str::methods(),
             Self::List(_) => List::methods(),
+            Self::Function(_) => Function::methods(),
             Self::Closure(_) => Closure::methods(),
             Self::Builtin(_) => Builtin::methods(),
             Self::Module(_) => Module::methods(),
+            Self::Method(_) => BoundMethod::methods(),
         }
     }
 
@@ -85,9 +95,11 @@ impl fmt::Display for Object {
             Self::Bool(val) => write!(f, "{val}"),
             Self::Str(val) => write!(f, "{val}"),
             Self::List(val) => write!(f, "{}", val.borrow()),
+            Self::Function(val) => write!(f, "{val}"),
             Self::Closure(val) => write!(f, "{val}"),
             Self::Builtin(val) => write!(f, "{val}"),
             Self::Module(val) => write!(f, "{}", val.borrow()),
+            Self::Method(val) => write!(f, "{val}"),
         }
     }
 }

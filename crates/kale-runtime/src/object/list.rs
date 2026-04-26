@@ -47,12 +47,11 @@ impl super::Type for List {
 
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let params = self.0
+        let elements = self.0
             .iter()
             .map(Object::to_string)
-            .collect::<Vec<_>>()
-            .join(", ");
-        write!(f, "[{params}]")
+            .collect::<Vec<_>>();
+        write!(f, "[{}]", elements.join(", "))
     }
 }
 

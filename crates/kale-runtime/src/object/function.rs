@@ -1,24 +1,22 @@
 use std::fmt;
 use kale_syntax::ast::{Block, Ident};
-use crate::env::Env;
 use crate::object::Builtin;
 
 #[derive(Debug, Clone)]
-pub struct Closure {
+pub struct Function {
     pub params: Vec<Ident>,
     pub body: Block,
-    pub env: Env,
 }
 
-impl Closure {
-    pub fn new(params: Vec<Ident>, body: Block, env: Env) -> Self {
-        Self { params, body, env }
+impl Function {
+    pub fn new(params: Vec<Ident>, body: Block) -> Self {
+        Self { params, body }
     }
 }
 
-impl super::Type for Closure {
+impl super::Type for Function {
     fn type_name() -> &'static str {
-        "closure"
+        "function"
     }
 
     fn methods() -> &'static [Builtin] {
@@ -26,9 +24,8 @@ impl super::Type for Closure {
     }
 }
 
-impl fmt::Display for Closure {
+impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "fn({})", self.params.join(", "))
     }
 }
-

@@ -1,5 +1,6 @@
+use kale_runtime::args::Args;
 use kale_runtime::Error;
-use kale_runtime::object::{Bool, Closure, Frozen, List, Mutable, Nil, Num, Object, Str};
+use kale_runtime::object::{Bool, BoundMethod, Closure, Frozen, Function, List, Method, Mutable, Nil, Num, Object, Str};
 use kale_syntax::ast;
 use kale_syntax::ast::{BinOp, Binary, Call, Expr, Ident, Index, Literal, Member, UnOp, Unary};
 use crate::interpreter::Interpreter;
@@ -35,13 +36,30 @@ impl Interpreter {
     }
 
     fn eval_call(&mut self, node: &Call) -> Result<Object> {
+        fn call_function(
+            interp: &mut Interpreter,
+            function: &Function,
+            mut args: Vec<Object>,
+        ) -> Result<Object> {
+            args.resize(function.params.len(), Nil.into());
+            for (param, arg) in function.params.iter().zip(args) {
+                interp.env.define(param, arg);
+            }
+
+            match interp.eval_block(&function.body) {
+                Ok(()) => Ok(Nil.into()),
+                Err(Outcome::Return(value)) => Ok(value),
+                Err(e) => Err(e),
+            }
+        }
+
         fn call_closure(
             interp: &mut Interpreter,
             closure: &Closure,
             mut args: Vec<Object>,
         ) -> Result<Object> {
             let prev_env = std::mem::replace(&mut interp.env, closure.env.clone());
-            interp.env.enter_scope(); // scope is discared when prev_env is restored below
+            interp.env.enter_scope(); // scope is discarded when prev_env is restored below
 
             args.resize(closure.params.len(), Nil.into());
             for (param, arg) in closure.params.iter().zip(args) {
@@ -58,6 +76,17 @@ impl Interpreter {
             result
         }
 
+        fn call_bound(
+            bound: &BoundMethod,
+            mut args: Vec<Object>,
+        ) -> Result<Object> {
+            args.insert(0, bound.receiver.clone());
+
+            match &bound.method {
+                Method::Builtin(builtin) => Ok((builtin.func)(Args(&args))?),
+            }
+        }
+
         let callee = self.eval_expr(&node.callee)?;
         let args = node.args
             .iter()
@@ -65,8 +94,10 @@ impl Interpreter {
             .collect::<Result<Vec<_>>>()?;
 
         match callee {
+            Object::Function(function) => call_function(self, &function, args),
             Object::Closure(closure) => call_closure(self, &closure, args),
-            Object::Builtin(builtin) => Ok((builtin.func)(&args)?),
+            Object::Builtin(builtin) => Ok((builtin.func)(Args(&args))?),
+            Object::Method(bound) => call_bound(&bound, args),
             _ => Err(Error::TypeError(
                 format!("{} is not callable", callee.type_name())
             ).into())
@@ -148,7 +179,8 @@ impl Interpreter {
             .find(|b| b.ident == property.as_str());
 
         if let Some(method) = method {
-            Ok(method.into())
+            let bound = BoundMethod::new(object, Method::Builtin(method));
+            Ok(bound.into())
         } else if let Object::Module(module) = object {
             let object = module.borrow()
                 .lookup(property)

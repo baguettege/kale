@@ -2,8 +2,6 @@ use kale_syntax::ast::Ident;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("scope stack underflow: cannot exit global scope")]
-    ScopeUnderflow,
     #[error("type error: {0}")]
     TypeError(String),
     #[error("undefined variable: {0}")]
@@ -12,6 +10,8 @@ pub enum Error {
     IndexOutOfBounds(usize),
     #[error("invalid assignment target")]
     InvalidAssign,
+    #[error("missing argument at index {0}")]
+    MissingArg(usize),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

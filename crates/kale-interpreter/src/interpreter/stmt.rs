@@ -1,6 +1,6 @@
 use crate::interpreter::flow::{Outcome, Result};
 use crate::interpreter::Interpreter;
-use kale_runtime::object::{Closure, Frozen, List, Module, Mutable, Num};
+use kale_runtime::object::{Frozen, Function, List, Module, Mutable, Num};
 use kale_runtime::Error;
 use kale_syntax::ast;
 use kale_syntax::ast::{Assign, Expr, FnDef, If, Return, Stmt, While};
@@ -36,10 +36,9 @@ impl Interpreter {
     fn eval_fndef(&mut self, node: &FnDef) {
         let params= node.params.clone();
         let body = node.body.clone();
-        let env = self.env.clone();
 
-        let closure = Closure::new(params, body, env);
-        self.env.define(node.ident.clone(), closure.into());
+        let function = Function::new(params, body);
+        self.env.define(node.ident.clone(), function.into());
     }
 
     fn eval_assign(&mut self, node: &Assign) -> Result<()> {

@@ -1,8 +1,9 @@
-use std::fmt;
-use crate::Result;
 use crate::object::Object;
+use crate::Result;
+use std::fmt;
+use crate::args::Args;
 
-pub type BuiltinFn = fn(&[Object]) -> Result<Object>;
+pub type BuiltinFn = fn(Args) -> Result<Object>;
 
 #[derive(Debug, Clone)]
 pub struct Builtin {
@@ -36,6 +37,6 @@ impl fmt::Display for Builtin {
 #[macro_export]
 macro_rules! builtin {
     ($ident:literal, $func:expr) => {
-        $crate::object::Builtin::new($ident, $func);
+        $crate::object::Builtin::new($ident, $func)
     };
 }

@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::object::Builtin;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct Str(String);
@@ -26,7 +26,6 @@ impl super::Type for Str {
 
 impl fmt::Display for Str {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\"{}\"", self.0)
+        write!(f, "{}", self.0)
     }
 }
-

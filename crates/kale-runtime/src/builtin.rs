@@ -17,6 +17,6 @@ macro_rules! lib {
         $crate::builtin::Lib::new(
             $ident,
             &[$($builtin),+],
-        );
+        )
     };
 }

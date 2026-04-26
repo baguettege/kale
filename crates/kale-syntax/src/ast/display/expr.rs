@@ -21,9 +21,8 @@ impl Printer<'_, '_> {
         let args = node.args
             .iter()
             .map(|arg| format!("{arg}"))
-            .collect::<Vec<_>>()
-            .join(", ");
-        write!(self.f, "{}({args})", node.callee)
+            .collect::<Vec<_>>();
+        write!(self.f, "{}({})", node.callee, args.join(", "))
     }
 
     fn print_binary(&mut self, node: &Binary) -> Result {
@@ -38,18 +37,16 @@ impl Printer<'_, '_> {
         let elements = node.elements
             .iter()
             .map(|elem| format!("{elem}"))
-            .collect::<Vec<_>>()
-            .join(", ");
-        write!(self.f, "[{elements}]")
+            .collect::<Vec<_>>();
+        write!(self.f, "[{}]", elements.join(", "))
     }
 
     fn print_closure(&mut self, node: &Closure) -> Result {
         let params = node.params
             .iter()
             .map(Ident::as_str)
-            .collect::<Vec<_>>()
-            .join(", ");
-        write!(self.f, "fn({params}) ")?;
+            .collect::<Vec<_>>();
+        write!(self.f, "fn({}) ", params.join(", "))?;
         self.print_block(&node.body)
     }
 

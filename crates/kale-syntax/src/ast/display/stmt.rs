@@ -46,10 +46,8 @@ impl Printer<'_, '_> {
         let params = node.params
             .iter()
             .map(Ident::as_str)
-            .collect::<Vec<_>>()
-            .join(", ");
-
-        write!(self.f, "fn {}({params}) ", node.ident)?;
+            .collect::<Vec<_>>();
+        write!(self.f, "fn {}({}) ", node.ident, params.join(", "))?;
         self.print_block(&node.body)
     }
 
