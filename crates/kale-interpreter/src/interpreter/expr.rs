@@ -1,11 +1,13 @@
-use std::rc::Rc;
+mod call;
+
+use crate::interpreter::flow::Result;
+use crate::interpreter::Interpreter;
 use kale_runtime::args::Args;
+use kale_runtime::object::{Bool, BoundMethod, Closure, Frozen, List, Method, Mutable, Nil, Num, Object, Str};
 use kale_runtime::Error;
-use kale_runtime::object::{Bool, BoundMethod, Closure, Frozen, Function, List, Method, Mutable, Nil, Num, Object, Str};
 use kale_syntax::ast;
 use kale_syntax::ast::{BinOp, Binary, Call, Expr, Ident, Index, Literal, Member, UnOp, Unary};
-use crate::interpreter::Interpreter;
-use crate::interpreter::flow::{Outcome, Result};
+use std::rc::Rc;
 
 impl Interpreter {
     pub(super) fn eval_expr(&mut self, expr: &Expr) -> Result<Object> {
@@ -37,62 +39,6 @@ impl Interpreter {
     }
 
     fn eval_call(&mut self, node: &Call) -> Result<Object> {
-        fn call_function(
-            interp: &mut Interpreter,
-            function: &Function,
-            mut args: Vec<Object>,
-        ) -> Result<Object> {
-            args.resize(function.params.len(), Nil.into());
-            for (param, arg) in function.params.iter().zip(args) {
-                interp.env.define(param, arg);
-            }
-
-            match interp.eval_block(&function.body) {
-                Ok(()) => Ok(Nil.into()),
-                Err(Outcome::Return(value)) => Ok(value),
-                Err(e) => Err(e),
-            }
-        }
-
-        fn call_closure(
-            interp: &mut Interpreter,
-            closure: Mutable<Closure>,
-            mut args: Vec<Object>,
-        ) -> Result<Object> {
-            let borrowed = closure.borrow();
-
-            let prev_env = std::mem::replace(&mut interp.env, borrowed.env.clone());
-            interp.env.enter_scope(); // scope is discarded when prev_env is restored below
-
-            args.resize(borrowed.params().len(), Nil.into());
-            for (param, arg) in borrowed.params().iter().zip(args) {
-                interp.env.define(param, arg);
-            }
-
-            let result = match interp.eval_block(borrowed.body()) {
-                Ok(()) => Ok(Nil.into()),
-                Err(Outcome::Return(value)) => Ok(value),
-                Err(e) => Err(e),
-            };
-
-            drop(borrowed);
-            closure.borrow_mut().env = interp.env.clone();
-
-            interp.env = prev_env;
-            result
-        }
-
-        fn call_bound(
-            bound: &BoundMethod,
-            mut args: Vec<Object>,
-        ) -> Result<Object> {
-            args.insert(0, bound.receiver.clone());
-
-            match &bound.method {
-                Method::Builtin(builtin) => Ok((builtin.func)(Args(&args))?),
-            }
-        }
-
         let callee = self.eval_expr(&node.callee)?;
         let args = node.args
             .iter()
@@ -100,19 +46,19 @@ impl Interpreter {
             .collect::<Result<Vec<_>>>()?;
 
         match callee {
-            Object::Function(function) => call_function(self, &function, args),
-            Object::Closure(closure) => call_closure(self, closure, args),
+            Object::Function(function) => self.call_function(&function, args),
+            Object::Closure(closure) => self.call_closure(closure, args),
             Object::Builtin(builtin) => Ok((builtin.func)(Args(&args))?),
-            Object::Method(bound) => call_bound(&bound, args),
+            Object::Method(bound) => self.call_bound(&bound, args),
             _ => Err(Error::TypeError(
                 format!("{} is not callable", callee.type_name())
-            ).into())
+            ).into()),
         }
     }
 
     fn eval_binary(&mut self, node: &Binary) -> Result<Object> {
-        fn ref_eq(lhs: Object, rhs: Object) -> bool {
-            match (&lhs, &rhs) {
+        fn ref_eq(a: &Object, b: &Object) -> bool {
+            match (a, b) {
                 (Object::Nil(_), Object::Nil(_)) => true,
                 (Object::Num(a), Object::Num(b)) => Rc::ptr_eq(a, b),
                 (Object::Bool(a), Object::Bool(b)) => Rc::ptr_eq(a, b),
@@ -128,7 +74,7 @@ impl Interpreter {
         let rhs = self.eval_expr(&node.rhs)?;
 
         let result = match (lhs, node.op, rhs) {
-            (lhs, BinOp::Is, rhs) => Bool(ref_eq(lhs, rhs)).into(),
+            (lhs, BinOp::Is, rhs) => Bool(ref_eq(&lhs, &rhs)).into(),
 
             (Object::Nil(_), BinOp::Eq, Object::Nil(_)) => Bool(true).into(),
             (Object::Nil(_), BinOp::Ne, Object::Nil(_)) => Bool(false).into(),
