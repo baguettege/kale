@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use kale_runtime::args::Args;
 use kale_runtime::Error;
 use kale_runtime::object::{Bool, BoundMethod, Closure, Frozen, Function, List, Method, Mutable, Nil, Num, Object, Str};
@@ -105,10 +106,25 @@ impl Interpreter {
     }
 
     fn eval_binary(&mut self, node: &Binary) -> Result<Object> {
+        fn ref_eq(lhs: Object, rhs: Object) -> bool {
+            match (&lhs, &rhs) {
+                (Object::Nil(_), Object::Nil(_)) => true,
+                (Object::Num(a), Object::Num(b)) => Rc::ptr_eq(a, b),
+                (Object::Bool(a), Object::Bool(b)) => Rc::ptr_eq(a, b),
+                (Object::Str(a), Object::Str(b)) => Rc::ptr_eq(a, b),
+                (Object::List(a), Object::List(b)) => Rc::ptr_eq(a, b),
+                (Object::Closure(a), Object::Closure(b)) => Rc::ptr_eq(a, b),
+                (Object::Module(a), Object::Module(b)) => Rc::ptr_eq(a, b),
+                _ => false,
+            }
+        }
+
         let lhs = self.eval_expr(&node.lhs)?;
         let rhs = self.eval_expr(&node.rhs)?;
 
         let result = match (lhs, node.op, rhs) {
+            (lhs, BinOp::Is, rhs) => Bool(ref_eq(lhs, rhs)).into(),
+
             (Object::Nil(_), BinOp::Eq, Object::Nil(_)) => Bool(true).into(),
             (Object::Nil(_), BinOp::Ne, Object::Nil(_)) => Bool(false).into(),
             (Object::Num(lhs), BinOp::Eq, Object::Num(rhs)) => Bool(lhs.0 == rhs.0).into(),
@@ -127,8 +143,8 @@ impl Interpreter {
             (Object::Num(lhs), BinOp::Gt, Object::Num(rhs)) => Bool(lhs.0 > rhs.0).into(),
             (Object::Num(lhs), BinOp::Ge, Object::Num(rhs)) => Bool(lhs.0 >= rhs.0).into(),
 
-            (Object::Bool(lhs), BinOp::And, Object::Bool(rhs)) => Bool(lhs.0 && rhs.0).into(),
-            (Object::Bool(lhs), BinOp::Or, Object::Bool(rhs)) => Bool(lhs.0 || rhs.0).into(),
+            (lhs, BinOp::And, rhs) => if lhs.is_truthy() { rhs } else { lhs },
+            (lhs, BinOp::Or, rhs) => if lhs.is_truthy() { lhs } else { rhs },
 
             (Object::Str(lhs), BinOp::Add, Object::Str(rhs)) => Str::new(format!("{lhs}{rhs}")).into(),
 

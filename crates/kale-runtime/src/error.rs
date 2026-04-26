@@ -2,6 +2,8 @@ use kale_syntax::ast::Ident;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("runtime error: {0}")]
+    Runtime(String),
     #[error("type error: {0}")]
     TypeError(String),
     #[error("undefined variable: {0}")]
