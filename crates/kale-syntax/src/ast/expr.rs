@@ -4,13 +4,13 @@ use crate::ast::{BinOp, Block, Ident, Literal, UnOp};
 pub enum Expr {
     Literal(Literal),
     Ident(Ident),
+    
     Call(Call),
     Binary(Binary),
     Unary(Unary),
     List(List),
     Closure(Closure),
     Member(Member),
-    Index(Index),
 }
 
 node! {
@@ -55,11 +55,4 @@ node! {
     }
 }
 
-node! {
-    Index {
-        object: Box<Expr>,
-        index: Box<Expr>,
-    }
-}
-
-impl_from!(Expr => Literal, Ident, Call, Binary, Unary, List, Closure, Member, Index);
+impl_from!(Expr => Literal, Ident, Call, Binary, Unary, List, Closure, Member);

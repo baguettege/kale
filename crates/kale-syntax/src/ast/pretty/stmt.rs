@@ -1,34 +1,36 @@
-use crate::ast::display::Printer;
-use crate::ast::{Assign, Block, Expr, FnDef, Ident, If, Module, Return, Stmt, While};
+use crate::ast::pretty::Printer;
+use crate::ast::{Assign, Block, Expr, FnDef, If, Let, Module, Raise, Return, Stmt, Struct, While};
 use std::fmt::Result;
 
 impl Printer<'_, '_> {
-    pub(crate) fn print_block(&mut self, block: &Block) -> Result {
+    pub(super) fn print_block(&mut self, block: &Block) -> Result {
         writeln!(self.f, "{{")?;
 
         self.with_indent(|this| {
-            for stmt in &block.0 {
+            block.iter().try_for_each(|stmt| {
                 this.print_stmt(stmt)?;
-                writeln!(this.f)?;
-            }
-            Ok(())
+                writeln!(this.f)
+            })
         })?;
 
         self.write_indent()?;
         write!(self.f, "}}")
     }
 
-    fn print_stmt(&mut self, stmt: &Stmt) -> Result {
+    pub(super) fn print_stmt(&mut self, stmt: &Stmt) -> Result {
         self.write_indent()?;
 
         match stmt {
             Stmt::Expr(expr) => self.print_expr_stmt(expr),
             Stmt::Module(node) => self.print_module(node),
+            Stmt::Struct(node) => self.print_struct(node),
             Stmt::FnDef(node) => self.print_fndef(node),
+            Stmt::Let(node) => self.print_let(node),
             Stmt::Assign(node) => self.print_assign(node),
             Stmt::If(node) => self.print_if(node),
             Stmt::While(node) => self.print_while(node),
             Stmt::Return(node) => self.print_return(node),
+            Stmt::Raise(node) => self.print_raise(node),
         }
     }
 
@@ -42,13 +44,32 @@ impl Printer<'_, '_> {
         self.print_block(&node.body)
     }
 
+    fn print_struct(&mut self, node: &Struct) -> Result {
+        write!(self.f, "struct {}(", node.ident)?;
+        self.print_comma_separated(&node.fields, Self::print_ident)?;
+        write!(self.f, ") {{")?;
+
+        self.with_indent(|this| {
+            node.methods.iter().try_for_each(|method| {
+                this.print_fndef(method)?;
+                writeln!(this.f)
+            })
+        })?;
+
+        write!(self.f, "}}")
+    }
+
     fn print_fndef(&mut self, node: &FnDef) -> Result {
-        let params = node.params
-            .iter()
-            .map(Ident::as_str)
-            .collect::<Vec<_>>();
-        write!(self.f, "fn {}({}) ", node.ident, params.join(", "))?;
+        write!(self.f, "fn {}(", node.ident)?;
+        self.print_comma_separated(&node.params, Self::print_ident)?;
+        write!(self.f, ") ")?;
         self.print_block(&node.body)
+    }
+
+    fn print_let(&mut self, node: &Let) -> Result {
+        write!(self.f, "let {} = ", node.ident)?;
+        self.print_expr(&node.init)?;
+        write!(self.f, ";")
     }
 
     fn print_assign(&mut self, node: &Assign) -> Result {
@@ -84,13 +105,10 @@ impl Printer<'_, '_> {
         self.print_expr(&node.value)?;
         write!(self.f, ";")
     }
-}
 
-impl_display!(Block => print_block);
-impl_display!(Stmt => print_stmt);
-impl_display!(Module => print_module);
-impl_display!(FnDef => print_fndef);
-impl_display!(Assign => print_assign);
-impl_display!(If => print_if);
-impl_display!(While => print_while);
-impl_display!(Return => print_return);
+    fn print_raise(&mut self, node: &Raise) -> Result {
+        write!(self.f, "raise ")?;
+        self.print_expr(&node.value)?;
+        write!(self.f, ";")
+    }
+}

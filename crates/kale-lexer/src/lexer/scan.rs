@@ -6,6 +6,7 @@ impl Lexer<'_> {
     pub(super) fn scan_token(&mut self) -> Result<Token> {
         match self.cursor.peek().ok_or(Error::UnexpectedEof)? {
             c if c.is_ascii_digit() => self.scan_num(),
+            '\'' => self.scan_char(),
             '"' => self.scan_str(),
             c if c.is_ascii_alphabetic() || c == '_' => Ok(self.scan_ident()),
             c => token::punct(c)
@@ -21,6 +22,13 @@ impl Lexer<'_> {
         s.parse::<f64>()
             .map(Token::Num)
             .map_err(|_| Error::InvalidNum(s.to_string()))
+    }
+
+    fn scan_char(&mut self) -> Result<Token> {
+        self.expect('\'')?;
+        let c = self.cursor.advance().ok_or(Error::UnexpectedEof)?;
+        self.expect('\'')?;
+        Ok(Token::Char(c))
     }
 
     fn scan_str(&mut self) -> Result<Token> {

@@ -13,12 +13,15 @@ pub(super) fn keyword(s: &str) -> Option<Token> {
         "and" => Token::And,
         "or" => Token::Or,
 
-        "module" => Token::Module,
         "fn" => Token::Fn,
         "return" => Token::Return,
+        "let" => Token::Let,
         "if" => Token::If,
         "else" => Token::Else,
         "while" => Token::While,
+        "module" => Token::Module,
+        "struct" => Token::Struct,
+        "raise" => Token::Raise,
 
         _ => return None,
     })
@@ -41,10 +44,11 @@ pub(super) fn punct(c: char) -> Option<Token> {
 
 pub(super) fn op(cursor: &mut Cursor) -> Option<Token> {
     let (token, n) = match (cursor.peek()?, cursor.peek_ahead(1)) {
-        ('+', _) => (Token::Plus, 1),
-        ('-', _) => (Token::Minus, 1),
         ('*', _) => (Token::Star, 1),
         ('/', _) => (Token::Slash, 1),
+        ('%', _) => (Token::Percent, 1),
+        ('+', _) => (Token::Plus, 1),
+        ('-', _) => (Token::Minus, 1),
 
         ('=', Some('=')) => (Token::EqEq, 2),
         ('=', _) => (Token::Assign, 1),

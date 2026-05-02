@@ -7,7 +7,7 @@ impl Parser<'_> {
     pub(super) fn parse_primary(&mut self) -> Result<Expr> {
         match self.cursor.peek().ok_or(Error::UnexpectedEof)? {
             Token::LParen => self.parse_grouped(),
-            Token::Nil | Token::Num(_) | Token::Bool(_) | Token::Str(_) =>
+            Token::Nil | Token::Num(_) | Token::Bool(_) | Token::Char(_) | Token::Str(_) =>
                 self.parse_literal().map(Into::into),
             Token::Ident(_) => self.parse_ident().map(Into::into),
             Token::LBrack => self.parse_list().map(Into::into),
@@ -29,6 +29,7 @@ impl Parser<'_> {
             Token::Nil => Literal::Nil,
             Token::Num(n) => Literal::Num(*n),
             Token::Bool(b) => Literal::Bool(*b),
+            Token::Char(c) => Literal::Char(*c),
             Token::Str(s) => Literal::Str(s.clone()),
             tok => return Err(Error::UnexpectedToken(tok.to_string())),
         })

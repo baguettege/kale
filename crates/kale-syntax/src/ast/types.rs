@@ -3,10 +3,11 @@ use num_enum::TryFromPrimitive;
 pub type Ident = String;
 
 #[repr(u8)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, TryFromPrimitive)]
+#[derive(Debug, Copy, Clone, TryFromPrimitive)]
 pub enum BinOp {
     Mul,
     Div,
+    Mod,
 
     Add,
     Sub,
@@ -26,16 +27,17 @@ pub enum BinOp {
 }
 
 #[repr(u8)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, TryFromPrimitive)]
+#[derive(Debug, Copy, Clone, TryFromPrimitive)]
 pub enum UnOp {
     Not,
     Neg,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Literal {
     Nil,
     Num(f64),
     Bool(bool),
+    Char(char),
     Str(String),
 }

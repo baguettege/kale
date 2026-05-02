@@ -1,7 +1,7 @@
 use crate::decode::{Decode, Decoder};
 use crate::tag::AstTag;
 use crate::{Error, Result};
-use kale_syntax::ast::{Binary, Call, Closure, Expr, Ident, Index, List, Literal, Member, Unary};
+use kale_syntax::ast::{Binary, Call, Closure, Expr, Ident, List, Literal, Member, Unary};
 
 impl Decode for Expr {
     fn decode(decoder: &mut Decoder) -> Result<Self> {
@@ -14,7 +14,6 @@ impl Decode for Expr {
             AstTag::List => decoder.decode::<List>()?.into(),
             AstTag::Closure => decoder.decode::<Closure>()?.into(),
             AstTag::Member => decoder.decode::<Member>()?.into(),
-            AstTag::Index => decoder.decode::<Index>()?.into(),
             tag => return Err(Error::UnknownTag(tag as u8)),
         })
     }
@@ -71,13 +70,5 @@ impl Decode for Member {
         let object = decoder.decode()?;
         let property = decoder.decode()?;
         Ok(Self::new(object, property))
-    }
-}
-
-impl Decode for Index {
-    fn decode(decoder: &mut Decoder) -> Result<Self> {
-        let object = decoder.decode()?;
-        let index = decoder.decode()?;
-        Ok(Self::new(object, index))
     }
 }

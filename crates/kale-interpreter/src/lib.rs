@@ -1,10 +1,11 @@
-use kale_runtime::builtin::Lib;
-use kale_runtime::Result;
-use kale_syntax::ast::Block;
-use crate::interpreter::Interpreter;
-
 mod interpreter;
+mod setup;
 
-pub fn run(block: &Block, libs: &[&Lib]) -> Result<()> {
-    Interpreter::new(libs).run(block)
+use crate::interpreter::Interpreter;
+use kale_syntax::ast::Program;
+
+pub use setup::{Init, Setup};
+
+pub fn run(program: &Program, inits: &[Init]) -> kale_runtime::Result<()> {
+    Interpreter::new(inits).run(program)
 }

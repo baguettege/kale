@@ -17,8 +17,8 @@ fn run() -> Result<()> {
     let file = PathBuf::from(&name).with_extension("kast");
     let encoded = fs::read(&file)?;
 
-    let ast = codec::decode(&encoded)?;
-    interpreter::run(&ast, kale_stdlib::STDLIB)?;
+    let program = codec::decode(&encoded)?;
+    interpreter::run(&program, &[kale_stdlib::INIT])?;
 
     Ok(())
 }

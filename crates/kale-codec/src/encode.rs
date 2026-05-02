@@ -4,6 +4,7 @@ mod tag;
 mod expr;
 mod stmt;
 mod collections;
+mod program;
 
 pub(crate) struct Encoder {
     buf: Vec<u8>,

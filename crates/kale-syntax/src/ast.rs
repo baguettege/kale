@@ -22,18 +22,21 @@ macro_rules! impl_from {
         $(
             impl From<$node> for $enum {
                 fn from(node: $node) -> Self {
-                    $enum::$node(node)
+                    Self::$node(node)
                 }
             }
         )+
     };
 }
 
-mod stmt;
-mod expr;
 mod types;
-mod display;
+mod expr;
+mod stmt;
+mod pretty;
 
 pub use types::*;
-pub use stmt::*;
 pub use expr::*;
+pub use stmt::*;
+
+#[derive(Debug, Clone)]
+pub struct Program(pub Block);

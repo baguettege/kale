@@ -45,6 +45,7 @@ impl Parser<'_> {
         Some(match self.cursor.peek()? {
             Token::Star => BinOp::Mul,
             Token::Slash => BinOp::Div,
+            Token::Percent => BinOp::Mod,
 
             Token::Plus => BinOp::Add,
             Token::Minus => BinOp::Sub,
@@ -85,7 +86,7 @@ mod precedence {
 
     pub(super) fn of(op: BinOp) -> Precedence {
         match op {
-            BinOp::Mul | BinOp::Div => 6,
+            BinOp::Mul | BinOp::Div | BinOp::Mod => 6,
             BinOp::Add | BinOp::Sub => 5,
             BinOp::Lt | BinOp::Le | BinOp::Gt | BinOp::Ge => 4,
             BinOp::Eq | BinOp::Ne | BinOp::Is => 3,

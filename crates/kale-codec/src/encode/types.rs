@@ -32,6 +32,7 @@ impl Encode for Literal {
             Self::Nil => { encoder.encode(&LiteralTag::Nil); },
             Self::Num(n) => tagged(encoder, LiteralTag::Num, n),
             Self::Bool(b) => tagged(encoder, LiteralTag::Bool, b),
+            Self::Char(c) => tagged(encoder, LiteralTag::Char, c),
             Self::Str(s) => tagged(encoder, LiteralTag::Str, s),
         }
     }

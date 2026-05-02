@@ -1,4 +1,4 @@
-use kale_syntax::ast::{Assign, Block, Expr, FnDef, If, Module, Return, Stmt, While};
+use kale_syntax::ast::{Assign, Expr, FnDef, If, Module, Return, Stmt, While};
 use crate::decode::{Decode, Decoder};
 use crate::{Error, Result};
 use crate::tag::AstTag;
@@ -15,12 +15,6 @@ impl Decode for Stmt {
             AstTag::Expr => decoder.decode::<Expr>()?.into(),
             tag => return Err(Error::UnknownTag(tag as u8)),
         })
-    }
-}
-
-impl Decode for Block {
-    fn decode(decoder: &mut Decoder) -> Result<Self> {
-        Ok(Block(decoder.decode()?))
     }
 }
 

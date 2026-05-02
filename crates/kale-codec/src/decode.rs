@@ -4,6 +4,7 @@ mod collections;
 mod types;
 mod expr;
 mod stmt;
+mod program;
 
 use crate::{Error, Result};
 

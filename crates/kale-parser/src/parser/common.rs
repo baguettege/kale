@@ -14,7 +14,7 @@ impl Parser<'_> {
 
     pub(super) fn parse_block(&mut self) -> Result<Block> {
         self.expect(Token::LBrace)?;
-        let mut stmts = Vec::new();
+        let mut stmts = Block::new();
 
         loop {
             match self.cursor.peek() {
@@ -25,7 +25,7 @@ impl Parser<'_> {
         }
 
         self.expect(Token::RBrace)?;
-        Ok(Block(stmts))
+        Ok(stmts)
     }
 
     pub(super) fn parse_ident(&mut self) -> Result<Ident> {

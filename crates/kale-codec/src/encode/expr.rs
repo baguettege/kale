@@ -1,4 +1,4 @@
-use kale_syntax::ast::{Binary, Call, Closure, Expr, Index, List, Member, Unary};
+use kale_syntax::ast::{Binary, Call, Closure, Expr, List, Member, Unary};
 use crate::encode::{Encode, Encoder};
 use crate::tag::AstTag;
 
@@ -19,7 +19,6 @@ impl Encode for Expr {
             Self::List(node) => tagged(encoder, AstTag::List, node),
             Self::Closure(node) => tagged(encoder, AstTag::Closure, node),
             Self::Member(node) => tagged(encoder, AstTag::Member, node),
-            Self::Index(node) => tagged(encoder, AstTag::Index, node),
         }
     }
 }
@@ -74,13 +73,5 @@ impl Encode for Member {
         encoder
             .encode(&self.object)
             .encode(&self.property);
-    }
-}
-
-impl Encode for Index {
-    fn encode(&self, encoder: &mut Encoder) {
-        encoder
-            .encode(&self.object)
-            .encode(&self.index);
     }
 }

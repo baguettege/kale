@@ -30,6 +30,7 @@ impl Decode for Literal {
             LiteralTag::Nil => Ok(Self::Nil),
             LiteralTag::Num => Ok(Self::Num(decoder.decode()?)),
             LiteralTag::Bool => Ok(Self::Bool(decoder.decode()?)),
+            LiteralTag::Char => Ok(Self::Char(decoder.decode()?)),
             LiteralTag::Str => Ok(Self::Str(decoder.decode()?)),
         }
     }

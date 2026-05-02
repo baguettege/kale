@@ -3,16 +3,19 @@ use crate::ast::{Expr, Ident};
 #[derive(Debug, Clone)]
 pub enum Stmt {
     Expr(Expr),
+
     Module(Module),
+    Struct(Struct),
     FnDef(FnDef),
+    Let(Let),
     Assign(Assign),
     If(If),
     While(While),
     Return(Return),
+    Raise(Raise),
 }
 
-#[derive(Debug, Clone)]
-pub struct Block(pub Vec<Stmt>);
+pub type Block = Vec<Stmt>;
 
 node! {
     Module {
@@ -22,10 +25,25 @@ node! {
 }
 
 node! {
+    Struct {
+        ident: Ident,
+        fields: Vec<Ident>,
+        methods: Vec<FnDef>,
+    }
+}
+
+node! {
     FnDef {
         ident: Ident,
         params: Vec<Ident>,
         body: Block,
+    }
+}
+
+node! {
+    Let {
+        ident: Ident,
+        init: Expr,
     }
 }
 
@@ -57,4 +75,10 @@ node! {
     }
 }
 
-impl_from!(Stmt => Expr, Module, FnDef, Assign, If, While, Return);
+node! {
+    Raise {
+        value: Expr,
+    }
+}
+
+impl_from!(Stmt => Expr, Module, Struct, FnDef, Let, Assign, If, While, Return, Raise);

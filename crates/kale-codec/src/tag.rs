@@ -14,14 +14,16 @@ pub(crate) enum AstTag {
     List,
     Closure,
     Member,
-    Index,
 
     Module,
+    Struct,
     FnDef,
+    Let,
     Assign,
     If,
     While,
     Return,
+    Raise,
 
     Expr,
 }
@@ -32,5 +34,6 @@ pub(crate) enum LiteralTag {
     Nil,
     Num,
     Bool,
+    Char,
     Str,
 }

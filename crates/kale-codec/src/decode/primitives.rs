@@ -32,3 +32,11 @@ impl Decode for bool {
         }
     }
 }
+
+impl Decode for char {
+    fn decode(decoder: &mut Decoder) -> Result<Self> {
+        let b = decoder.decode::<u32>()?;
+        char::from_u32(b).ok_or_else(|| Error::InvalidData(
+            format!("invalid char as u32: {b}")))
+    }
+}

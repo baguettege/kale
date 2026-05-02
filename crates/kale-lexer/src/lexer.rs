@@ -1,6 +1,6 @@
+use kale_syntax::token::Token;
 use crate::lexer::cursor::Cursor;
 use crate::Result;
-use kale_syntax::token::TokenStream;
 
 mod cursor;
 mod token;
@@ -15,7 +15,7 @@ impl<'a> Lexer<'a> {
         Self { cursor: Cursor::new(input) }
     }
 
-    pub(crate) fn tokenize(mut self) -> Result<TokenStream> {
+    pub(crate) fn tokenize(mut self) -> Result<Vec<Token>> {
         let mut tokens = Vec::new();
 
         loop {
@@ -24,6 +24,6 @@ impl<'a> Lexer<'a> {
             tokens.push(self.scan_token()?);
         }
 
-        Ok(TokenStream(tokens))
+        Ok(tokens)
     }
 }

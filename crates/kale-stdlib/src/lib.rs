@@ -1,14 +1,9 @@
-mod core;
-mod io;
-mod math;
+pub mod io;
 
-pub use core::CORE;
-pub use io::IO;
-pub use math::MATH;
-use kale_api::runtime::builtin::Lib;
+use kale_api::interpreter::{Init, Setup};
 
-pub const STDLIB: &[&Lib] = &[
-    CORE,
-    IO,
-    MATH,
-];
+pub const INIT: Init = init;
+
+fn init(setup: &mut Setup) {
+    io::INIT(setup);
+}

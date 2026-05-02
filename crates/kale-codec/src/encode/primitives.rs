@@ -25,3 +25,9 @@ impl Encode for bool {
         encoder.encode(&(*self as u8));
     }
 }
+
+impl Encode for char {
+    fn encode(&self, encoder: &mut Encoder) {
+        encoder.encode(&(*self as u32));
+    }
+}

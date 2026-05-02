@@ -1,14 +1,15 @@
 use kale_runtime::Error;
 use kale_runtime::object::Object;
 
-pub(super) enum Outcome {
+#[derive(Debug)]
+pub(super) enum Signal {
     Error(Error),
     Return(Object),
 }
 
-pub(super) type Result<T> = std::result::Result<T, Outcome>;
+pub(super) type Result<T> = std::result::Result<T, Signal>;
 
-impl From<Error> for Outcome {
+impl From<Error> for Signal {
     fn from(error: Error) -> Self {
         Self::Error(error)
     }

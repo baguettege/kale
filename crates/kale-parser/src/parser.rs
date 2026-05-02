@@ -1,7 +1,7 @@
 use crate::parser::cursor::Cursor;
 use crate::Result;
 use kale_syntax::token::Token;
-use kale_syntax::ast::Block;
+use kale_syntax::ast::{Block, Program};
 
 mod cursor;
 mod stmt;
@@ -17,13 +17,13 @@ impl<'a> Parser<'a> {
         Self { cursor: Cursor::new(tokens) }
     }
 
-    pub(crate) fn parse(mut self) -> Result<Block> {
-        let mut stmts = Vec::new();
+    pub(crate) fn parse(mut self) -> Result<Program> {
+        let mut block = Block::new();
 
         while !self.cursor.is_at_end() {
-            stmts.push(self.parse_stmt()?);
+            block.push(self.parse_stmt()?);
         }
 
-        Ok(Block(stmts))
+        Ok(Program(block))
     }
 }

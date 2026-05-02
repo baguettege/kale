@@ -1,4 +1,4 @@
-use kale_syntax::ast::{Call, Expr, Index, Member};
+use kale_syntax::ast::{Call, Expr, Member};
 use kale_syntax::token::Token;
 use crate::parser::Parser;
 use crate::Result;
@@ -9,7 +9,6 @@ impl Parser<'_> {
              expr = match self.cursor.peek() {
                  Some(Token::LParen) => self.parse_call(expr)?.into(),
                  Some(Token::Dot) => self.parse_member(expr)?.into(),
-                 Some(Token::LBrack) => self.parse_index(expr)?.into(),
                  _ => return Ok(expr),
             }
         }
@@ -25,12 +24,5 @@ impl Parser<'_> {
         self.expect(Token::Dot)?;
         let property = self.parse_ident()?;
         Ok(Member::new(object.into(), property))
-    }
-
-    fn parse_index(&mut self, object: Expr) -> Result<Index> {
-        self.expect(Token::LBrack)?;
-        let index = self.parse_expr()?;
-        self.expect(Token::RBrack)?;
-        Ok(Index::new(object.into(), index.into()))
     }
 }

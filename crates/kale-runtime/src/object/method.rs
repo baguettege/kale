@@ -1,37 +1,28 @@
-use std::fmt;
-use std::fmt::Formatter;
-use crate::object::{Builtin, Object};
+use crate::object::{Closure, Immutable, NativeMethod, Object};
+
+#[derive(Debug)]
+pub struct BoundMethod {
+    pub(super) receiver: Object,
+    pub(super) method: Method,
+}
 
 #[derive(Debug, Clone)]
 pub enum Method {
-    Builtin(&'static Builtin),
-    // `Frozen<Closure>` for kale-defined methods
-}
-
-#[derive(Debug, Clone)]
-pub struct BoundMethod {
-    pub receiver: Object,
-    pub method: Method,
+    Native(&'static NativeMethod),
+    Closure(Immutable<Closure>),
 }
 
 impl BoundMethod {
-    pub fn new(receiver: Object, method: Method) -> Self {
+    pub fn new(receiver: impl Into<Object>, method: Method) -> Self {
+        let receiver = receiver.into();
         Self { receiver, method }
     }
-}
 
-impl super::Type for BoundMethod {
-    fn type_name() -> &'static str {
-        "method"
+    pub fn receiver(&self) -> Object {
+        self.receiver.clone()
     }
 
-    fn methods() -> &'static [Builtin] {
-        &[]
-    }
-}
-
-impl fmt::Display for BoundMethod {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "<method>")
+    pub fn method(&self) -> Method {
+        self.method.clone()
     }
 }

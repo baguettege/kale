@@ -1,4 +1,4 @@
-use kale_syntax::ast::{Assign, Block, FnDef, If, Module, Return, Stmt, While};
+use kale_syntax::ast::{Assign, FnDef, If, Let, Module, Raise, Return, Stmt, Struct, While};
 use crate::encode::{Encode, Encoder};
 use crate::tag::AstTag;
 
@@ -11,20 +11,17 @@ impl Encode for Stmt {
         }
 
         match self {
-            Stmt::Expr(node) => tagged(encoder, AstTag::Expr, node),
-            Stmt::Module(node) => tagged(encoder, AstTag::Module, node),
-            Stmt::FnDef(node) => tagged(encoder, AstTag::FnDef, node),
-            Stmt::Assign(node) => tagged(encoder, AstTag::Assign, node),
-            Stmt::If(node) => tagged(encoder, AstTag::If, node),
-            Stmt::While(node) => tagged(encoder, AstTag::While, node),
-            Stmt::Return(node) => tagged(encoder, AstTag::Return, node),
+            Self::Expr(node) => tagged(encoder, AstTag::Expr, node),
+            Self::Module(node) => tagged(encoder, AstTag::Module, node),
+            Self::Struct(node) => tagged(encoder, AstTag::Struct, node),
+            Self::FnDef(node) => tagged(encoder, AstTag::FnDef, node),
+            Self::Let(node) => tagged(encoder, AstTag::Let, node),
+            Self::Assign(node) => tagged(encoder, AstTag::Assign, node),
+            Self::If(node) => tagged(encoder, AstTag::If, node),
+            Self::While(node) => tagged(encoder, AstTag::While, node),
+            Self::Return(node) => tagged(encoder, AstTag::Return, node),
+            Self::Raise(node) => tagged(encoder, AstTag::Raise, node),
         }
-    }
-}
-
-impl Encode for Block {
-    fn encode(&self, encoder: &mut Encoder) {
-        encoder.encode(&self.0);
     }
 }
 
@@ -36,12 +33,29 @@ impl Encode for Module {
     }
 }
 
+impl Encode for Struct {
+    fn encode(&self, encoder: &mut Encoder) {
+        encoder
+            .encode(&self.ident)
+            .encode(&self.fields)
+            .encode(&self.methods);
+    }
+}
+
 impl Encode for FnDef {
     fn encode(&self, encoder: &mut Encoder) {
         encoder
             .encode(&self.ident)
             .encode(&self.params)
             .encode(&self.body);
+    }
+}
+
+impl Encode for Let {
+    fn encode(&self, encoder: &mut Encoder) {
+        encoder
+            .encode(&self.ident)
+            .encode(&self.init);
     }
 }
 
@@ -71,6 +85,12 @@ impl Encode for While {
 }
 
 impl Encode for Return {
+    fn encode(&self, encoder: &mut Encoder) {
+        encoder.encode(&self.value);
+    }
+}
+
+impl Encode for Raise {
     fn encode(&self, encoder: &mut Encoder) {
         encoder.encode(&self.value);
     }

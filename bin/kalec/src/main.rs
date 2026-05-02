@@ -18,8 +18,8 @@ fn run() -> Result<()> {
     let in_file = PathBuf::from(&name).with_extension("kale");
     let src = fs::read_to_string(&in_file)?;
 
-    let ast = parser::parse(&src)?;
-    let encoded = codec::encode(&ast);
+    let program = parser::parse(&src)?;
+    let encoded = codec::encode(&program);
 
     let out_file = in_file.with_extension("kast");
     fs::write(&out_file, &encoded)?;

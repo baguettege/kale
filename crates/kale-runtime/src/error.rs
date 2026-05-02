@@ -1,19 +1,27 @@
-use kale_syntax::ast::Ident;
+use crate::object::Object;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("runtime error: {0}")]
-    Runtime(String),
-    #[error("type error: {0}")]
-    TypeError(String),
     #[error("undefined variable: {0}")]
-    UndefinedVariable(Ident),
-    #[error("index out of bounds: {0}")]
-    IndexOutOfBounds(usize),
-    #[error("invalid assignment target")]
-    InvalidAssign,
+    UndefinedVariable(String),
     #[error("missing argument at index {0}")]
     MissingArg(usize),
+    #[error("type error: {0}")]
+    TypeError(String),
+    #[error("raised: {0}")]
+    Raised(Object),
+    #[error("invalid assignment target")]
+    InvalidAssign,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+impl Error {
+    pub fn type_mismatch(expected: impl Into<String>, got: impl Into<String>) -> Self {
+        Self::TypeError(format!("expected {}, got {}", expected.into(), got.into()))
+    }
+
+    pub fn raise(object: impl Into<Object>) -> Self {
+        Self::Raised(object.into())
+    }
+}
