@@ -97,7 +97,7 @@ impl Env {
             scope.insert(ident.clone(), object);
             Ok(())
         } else {
-            Err(Error::UndefinedVariable(ident))
+            Err(Error::Undefined(ident))
         }
     }
 
@@ -108,7 +108,7 @@ impl Env {
             .find_map(|sc| sc.get(ident))
             .or_else(|| self.globals.0.get(ident))
             .cloned()
-            .ok_or_else(|| Error::UndefinedVariable(ident.clone()))
+            .ok_or_else(|| Error::Undefined(ident.clone()))
     }
 }
 

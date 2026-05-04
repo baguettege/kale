@@ -1,11 +1,13 @@
 mod interpreter;
-mod setup;
+mod registry;
+mod error;
 
 use crate::interpreter::Interpreter;
 use kale_syntax::ast::Program;
 
-pub use setup::{Init, Setup};
+pub use registry::{Loader, Registry};
+pub use error::{Error, Result};
 
-pub fn run(program: &Program, inits: &[Init]) -> kale_runtime::Result<()> {
-    Interpreter::new(inits).run(program)
+pub fn run(program: &Program, loaders: &[Loader]) -> Result<()> {
+    Interpreter::new(loaders).run(program)
 }

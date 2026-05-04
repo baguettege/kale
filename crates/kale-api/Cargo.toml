@@ -1,0 +1,14 @@
+[package]
+name = "kale-api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+kale-lexer = { path = "../kale-lexer" }
+kale-parser = { path = "../kale-parser" }
+kale-syntax = { path = "../kale-syntax" }
+kale-codec = { path = "../kale-codec" }
+kale-runtime = { path = "../kale-runtime" }
+kale-interpreter = { path = "../kale-interpreter" }
+kale-report = { path = "../kale-report" }
+thiserror = "2.0.18"

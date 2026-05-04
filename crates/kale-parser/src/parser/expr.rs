@@ -1,11 +1,11 @@
 mod primary;
 mod postfix;
 
-use kale_syntax::ast::{BinOp, Binary, Expr, UnOp, Unary};
-use kale_syntax::token::Token;
 use crate::parser::expr::precedence::Precedence;
 use crate::parser::Parser;
 use crate::Result;
+use kale_syntax::ast::{BinOp, Binary, Expr, UnOp, Unary};
+use kale_syntax::token::TokenKind;
 
 impl Parser<'_> {
     pub(super) fn parse_expr(&mut self) -> Result<Expr> {
@@ -22,7 +22,9 @@ impl Parser<'_> {
             let rhs = self.parse_operand()?;
             let rhs = self.parse_expr_inner(rhs, precedence + 1)?;
 
-            lhs = Binary::new(lhs.into(), op, rhs.into()).into();
+            // manual merge is cleaner than `self.with_span` here
+            let span = lhs.span().merge(&rhs.span());
+            lhs = Expr::new(span, Binary::new(lhs.into(), op, rhs.into()).into());
         }
 
         Ok(lhs)
@@ -30,9 +32,12 @@ impl Parser<'_> {
 
     fn parse_operand(&mut self) -> Result<Expr> {
         if let Some(op) = self.peek_unop() {
-            self.cursor.advance();
-            let expr = self.parse_operand()?;
-            Ok(Unary::new(op, expr.into()).into())
+            let (span, expr) = self.with_span(|this| {
+                this.cursor.advance();
+                this.parse_operand()
+            })?;
+
+            Ok(Expr::new(span, Unary::new(op, expr.into()).into()))
         } else {
             let primary = self.parse_primary()?;
             self.parse_postfix(primary)
@@ -42,35 +47,35 @@ impl Parser<'_> {
 
 impl Parser<'_> {
     fn peek_binop(&self) -> Option<BinOp> {
-        Some(match self.cursor.peek()? {
-            Token::Star => BinOp::Mul,
-            Token::Slash => BinOp::Div,
-            Token::Percent => BinOp::Mod,
+        Some(match self.cursor.peek()?.inner() {
+            TokenKind::Star => BinOp::Mul,
+            TokenKind::Slash => BinOp::Div,
+            TokenKind::Percent => BinOp::Mod,
 
-            Token::Plus => BinOp::Add,
-            Token::Minus => BinOp::Sub,
+            TokenKind::Plus => BinOp::Add,
+            TokenKind::Minus => BinOp::Sub,
 
-            Token::Lt => BinOp::Lt,
-            Token::Le => BinOp::Le,
-            Token::Gt => BinOp::Gt,
-            Token::Ge => BinOp::Ge,
+            TokenKind::Lt => BinOp::Lt,
+            TokenKind::Le => BinOp::Le,
+            TokenKind::Gt => BinOp::Gt,
+            TokenKind::Ge => BinOp::Ge,
 
-            Token::EqEq => BinOp::Eq,
-            Token::Ne => BinOp::Ne,
-            Token::Is => BinOp::Is,
+            TokenKind::EqEq => BinOp::Eq,
+            TokenKind::Ne => BinOp::Ne,
+            TokenKind::Is => BinOp::Is,
 
-            Token::And => BinOp::And,
+            TokenKind::And => BinOp::And,
 
-            Token::Or => BinOp::Or,
+            TokenKind::Or => BinOp::Or,
 
             _ => return None,
         })
     }
 
     fn peek_unop(&self) -> Option<UnOp> {
-        Some(match self.cursor.peek()? {
-            Token::Not => UnOp::Not,
-            Token::Minus => UnOp::Neg,
+        Some(match self.cursor.peek()?.inner() {
+            TokenKind::Not => UnOp::Not,
+            TokenKind::Minus => UnOp::Neg,
 
             _ => return None,
         })

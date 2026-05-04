@@ -18,7 +18,7 @@ impl<'a, 'b> Printer<'a, 'b> {
 
     fn print_program(&mut self, program: &Program) -> Result {
         program.0.iter().try_for_each(|stmt| {
-            self.print_stmt(stmt)?;
+            self.print_stmt(stmt.inner())?;
             writeln!(self.f)
         })
     }

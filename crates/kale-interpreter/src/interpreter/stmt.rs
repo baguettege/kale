@@ -3,23 +3,30 @@ use std::rc::Rc;
 use kale_runtime::Error;
 use kale_runtime::object::{Closure, Method, Module, Object, StructDef};
 use kale_syntax::ast;
-use kale_syntax::ast::{Assign, Expr, FnDef, If, Let, Raise, Return, Stmt, While};
+use kale_syntax::ast::{Assign, Expr, ExprKind, FnDef, Ident, If, Let, Raise, Return, Stmt, StmtKind, While};
 use crate::interpreter::flow::{Result, Signal};
 use crate::interpreter::Interpreter;
 
 impl Interpreter {
     pub(super) fn eval_stmt(&mut self, stmt: &Stmt) -> Result<()> {
-        match stmt {
-            Stmt::Expr(expr) => self.eval_expr_stmt(expr),
-            Stmt::Module(node) => self.eval_module(node),
-            Stmt::Struct(node) => self.eval_struct(node),
-            Stmt::FnDef(node) => Ok(self.eval_fndef(node)),
-            Stmt::Let(node) => self.eval_let(node),
-            Stmt::Assign(node) => self.eval_assign(node),
-            Stmt::If(node) => self.eval_if(node),
-            Stmt::While(node) => self.eval_while(node),
-            Stmt::Return(node) => self.eval_return(node),
-            Stmt::Raise(node) => self.eval_raise(node),
+        self.with_span(
+            stmt.span(),
+            |this| this.eval_stmt_kind(stmt.inner()),
+        )
+    }
+    
+    fn eval_stmt_kind(&mut self, kind: &StmtKind) -> Result<()> {
+        match kind {
+            StmtKind::Expr(expr) => self.eval_expr_stmt(expr),
+            StmtKind::Module(node) => self.eval_module(node),
+            StmtKind::Struct(node) => self.eval_struct(node),
+            StmtKind::FnDef(node) => Ok(self.eval_fndef(node)),
+            StmtKind::Let(node) => self.eval_let(node),
+            StmtKind::Assign(node) => self.eval_assign(node),
+            StmtKind::If(node) => self.eval_if(node),
+            StmtKind::While(node) => self.eval_while(node),
+            StmtKind::Return(node) => self.eval_return(node),
+            StmtKind::Raise(node) => self.eval_raise(node),
         }
     }
 
@@ -39,24 +46,32 @@ impl Interpreter {
     }
 
     fn eval_struct(&mut self, node: &ast::Struct) -> Result<()> {
-        let mut methods = HashMap::<ast::Ident, Method>::new();
+        let mut methods = HashMap::new();
 
         for def in &node.methods {
-            // note that we don't require defining the closure in its own captured
-            // `Env`, as methods are looked up via `StructDef`, not `Env` like
-            // with free functions, which require this for recursion
-            let closure = Closure::new(
+            let closure = Rc::new(Closure::new(
                 def.params.clone(),
                 def.body.clone(),
                 self.env.clone(),
-            );
+            ));
 
-            let method = Method::Closure(Rc::new(closure));
+            let first_param = closure.params()
+                .first()
+                .map(Ident::as_str);
+            let method = match first_param {
+                Some("self") => Method::Closure(closure),
+                _ => Method::Static(closure),
+            };
+
             methods.insert(def.ident.clone(), method);
         }
 
         let def = StructDef::new(node.fields.clone(), methods);
+
+        // same trick as `eval_fndef`: the struct isn't defined yet when we build
+        // its methods, so we clone the env, define the struct, then detach
         self.env.define(&node.ident, def.into());
+        self.env.detach();
 
         Ok(())
     }
@@ -88,11 +103,11 @@ impl Interpreter {
     fn eval_assign(&mut self, node: &Assign) -> Result<()> {
         let value = self.eval_expr(&node.value)?;
 
-        match &node.target {
-            Expr::Ident(ident) => self.env
+        match node.target.inner() {
+            ExprKind::Ident(ident) => self.env
                 .set(ident, value)
-                .map_err(Into::into),
-            Expr::Member(node) => {
+                .map_err(|e| self.error(e).into()),
+            ExprKind::Member(node) => {
                 let result = match self.eval_expr(&node.object)? {
                     Object::Module(module) => module
                         .borrow_mut()
@@ -104,10 +119,10 @@ impl Interpreter {
                 };
 
                 result
-                    .ok_or_else(|| Error::UndefinedVariable(node.property.clone()))
-                    .map_err(Into::into)
+                    .ok_or_else(|| Error::Undefined(node.property.clone()))
+                    .map_err(|e| self.error(e).into())
             },
-            _ => Err(Error::InvalidAssign.into()),
+            _ => Err(self.error(Error::InvalidAssign).into()),
         }
     }
 
@@ -140,6 +155,6 @@ impl Interpreter {
 
     fn eval_raise(&mut self, node: &Raise) -> Result<()> {
         let value = self.eval_expr(&node.value)?;
-        Err(Error::raise(value).into())
+        Err(self.error(Error::raise(value)).into())
     }
 }

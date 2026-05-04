@@ -1,7 +1,11 @@
 use crate::ast::{Expr, Ident};
+use crate::span::Spanned;
+
+pub type Stmt = Spanned<StmtKind>;
+pub type Block = Vec<Stmt>;
 
 #[derive(Debug, Clone)]
-pub enum Stmt {
+pub enum StmtKind {
     Expr(Expr),
 
     Module(Module),
@@ -14,8 +18,6 @@ pub enum Stmt {
     Return(Return),
     Raise(Raise),
 }
-
-pub type Block = Vec<Stmt>;
 
 node! {
     Module {
@@ -81,4 +83,4 @@ node! {
     }
 }
 
-impl_from!(Stmt => Expr, Module, Struct, FnDef, Let, Assign, If, While, Return, Raise);
+impl_from!(StmtKind => Expr, Module, Struct, FnDef, Let, Assign, If, While, Return, Raise);

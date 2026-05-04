@@ -60,7 +60,7 @@ impl Display for StructDef {
             .map(Ident::as_str)
             .collect::<Vec<_>>()
             .join(", ");
-        write!(f, "struct({fields})")
+        write!(f, "struct_def({fields})")
     }
 }
 

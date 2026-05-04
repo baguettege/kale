@@ -8,8 +8,9 @@ pub struct BoundMethod {
 
 #[derive(Debug, Clone)]
 pub enum Method {
-    Native(&'static NativeMethod),
+    Native(NativeMethod),
     Closure(Immutable<Closure>),
+    Static(Immutable<Closure>),
 }
 
 impl BoundMethod {

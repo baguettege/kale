@@ -1,8 +1,8 @@
-use kale_syntax::ast::{Binary, Call, Closure, Expr, List, Member, Unary};
+use kale_syntax::ast::{Binary, Call, Closure, Expr, ExprKind, List, Member, Unary};
 use crate::encode::{Encode, Encoder};
 use crate::tag::AstTag;
 
-impl Encode for Expr {
+impl Encode for ExprKind {
     fn encode(&self, encoder: &mut Encoder) {
         fn tagged<T: Encode>(encoder: &mut Encoder, tag: AstTag, value: &T) {
             encoder

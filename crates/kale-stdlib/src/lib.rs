@@ -1,9 +1,9 @@
-pub mod io;
+pub mod globals;
 
-use kale_api::interpreter::{Init, Setup};
+use kale_api::interpreter::{Loader, Registry};
 
-pub const INIT: Init = init;
+pub const LOADER: Loader = loader;
 
-fn init(setup: &mut Setup) {
-    io::INIT(setup);
+pub fn loader(registry: &mut Registry) {
+    globals::LOADER(registry);
 }

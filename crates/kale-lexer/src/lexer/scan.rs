@@ -1,10 +1,27 @@
-use kale_syntax::token::Token;
+use crate::error::Error;
 use crate::lexer::{token, Lexer};
-use crate::{Result, Error};
+use crate::ErrorKind;
+use crate::Result;
+use kale_syntax::span::Span;
+use kale_syntax::token::{Token, TokenKind};
+
+type RawResult<T> = std::result::Result<T, ErrorKind>;
 
 impl Lexer<'_> {
     pub(super) fn scan_token(&mut self) -> Result<Token> {
-        match self.cursor.peek().ok_or(Error::UnexpectedEof)? {
+        let start = self.cursor.offset();
+
+        let result = self.scan_kind();
+        let span = Span::new(start, self.cursor.offset());
+
+        match result {
+            Ok(kind) => Ok(Token::new(span, kind)),
+            Err(e) => Err(Error::new(span, e)),
+        }
+    }
+
+    fn scan_kind(&mut self) -> RawResult<TokenKind> {
+        match self.cursor.peek().ok_or(ErrorKind::UnexpectedEof)? {
             c if c.is_ascii_digit() => self.scan_num(),
             '\'' => self.scan_char(),
             '"' => self.scan_str(),
@@ -12,47 +29,58 @@ impl Lexer<'_> {
             c => token::punct(c)
                 .map(|tok| { self.cursor.advance(); tok })
                 .or_else(|| token::op(&mut self.cursor))
-                .ok_or(Error::UnexpectedChar(c))
+                .ok_or(ErrorKind::UnexpectedChar(c))
         }
     }
 
-    fn scan_num(&mut self) -> Result<Token> {
-        let s = self.cursor.advance_while(
-            |c| c.is_ascii_digit() || c == '.');
+    fn scan_num(&mut self) -> RawResult<TokenKind> {
+        let s = self.cursor.consume(|cursor| {
+            // consume the 1st part of the number
+            cursor.advance_while(|c| c.is_ascii_digit());
+
+            if cursor.peek() == Some('.') &&
+                cursor.peek_ahead(1).is_some_and(|c| c.is_ascii_digit())
+            {
+                cursor.advance(); // consume the `.`
+                // consume the 2nd part of the number
+                cursor.advance_while(|c| c.is_ascii_digit());
+            }
+        });
+
         s.parse::<f64>()
-            .map(Token::Num)
-            .map_err(|_| Error::InvalidNum(s.to_string()))
+            .map(TokenKind::Num)
+            .map_err(|_| ErrorKind::InvalidNum(s.to_string()))
     }
 
-    fn scan_char(&mut self) -> Result<Token> {
+    fn scan_char(&mut self) -> RawResult<TokenKind> {
         self.expect('\'')?;
-        let c = self.cursor.advance().ok_or(Error::UnexpectedEof)?;
+        let c = self.cursor.advance().ok_or(ErrorKind::UnexpectedEof)?;
         self.expect('\'')?;
-        Ok(Token::Char(c))
+        Ok(TokenKind::Char(c))
     }
 
-    fn scan_str(&mut self) -> Result<Token> {
+    fn scan_str(&mut self) -> RawResult<TokenKind> {
         self.expect('"')?;
         let s = self.cursor.advance_while(
             |c| c != '"').to_string();
         self.expect('"')?;
-        Ok(Token::Str(s))
+        Ok(TokenKind::Str(s))
     }
 
-    fn scan_ident(&mut self) -> Token {
+    fn scan_ident(&mut self) -> TokenKind {
         let s = self.cursor.advance_while(
             |c| c.is_ascii_alphanumeric() || c == '_');
         token::keyword(s).unwrap_or_else(
-            || Token::Ident(s.to_string()))
+            || TokenKind::Ident(s.to_string()))
     }
 }
 
 impl Lexer<'_> {
-    fn expect(&mut self, c: char) -> Result<()> {
+    fn expect(&mut self, c: char) -> RawResult<()> {
         match self.cursor.advance() {
             Some(ch) if ch == c => Ok(()),
-            Some(ch) => Err(Error::UnexpectedChar(ch)),
-            None => Err(Error::UnexpectedEof),
+            Some(ch) => Err(ErrorKind::UnexpectedChar(ch)),
+            None => Err(ErrorKind::UnexpectedEof),
         }
     }
 }

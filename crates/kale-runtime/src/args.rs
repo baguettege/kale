@@ -1,7 +1,7 @@
 use crate::object::Object;
 use crate::{Error, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Args<'a>(&'a [Object]);
 
 impl<'a> Args<'a> {

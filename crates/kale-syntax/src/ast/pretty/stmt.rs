@@ -1,5 +1,5 @@
 use crate::ast::pretty::Printer;
-use crate::ast::{Assign, Block, Expr, FnDef, If, Let, Module, Raise, Return, Stmt, Struct, While};
+use crate::ast::{Assign, Block, Expr, FnDef, If, Let, Module, Raise, Return, StmtKind, Struct, While};
 use std::fmt::Result;
 
 impl Printer<'_, '_> {
@@ -8,7 +8,7 @@ impl Printer<'_, '_> {
 
         self.with_indent(|this| {
             block.iter().try_for_each(|stmt| {
-                this.print_stmt(stmt)?;
+                this.print_stmt(stmt.inner())?;
                 writeln!(this.f)
             })
         })?;
@@ -17,20 +17,20 @@ impl Printer<'_, '_> {
         write!(self.f, "}}")
     }
 
-    pub(super) fn print_stmt(&mut self, stmt: &Stmt) -> Result {
+    pub(super) fn print_stmt(&mut self, stmt: &StmtKind) -> Result {
         self.write_indent()?;
 
         match stmt {
-            Stmt::Expr(expr) => self.print_expr_stmt(expr),
-            Stmt::Module(node) => self.print_module(node),
-            Stmt::Struct(node) => self.print_struct(node),
-            Stmt::FnDef(node) => self.print_fndef(node),
-            Stmt::Let(node) => self.print_let(node),
-            Stmt::Assign(node) => self.print_assign(node),
-            Stmt::If(node) => self.print_if(node),
-            Stmt::While(node) => self.print_while(node),
-            Stmt::Return(node) => self.print_return(node),
-            Stmt::Raise(node) => self.print_raise(node),
+            StmtKind::Expr(expr) => self.print_expr_stmt(expr),
+            StmtKind::Module(node) => self.print_module(node),
+            StmtKind::Struct(node) => self.print_struct(node),
+            StmtKind::FnDef(node) => self.print_fndef(node),
+            StmtKind::Let(node) => self.print_let(node),
+            StmtKind::Assign(node) => self.print_assign(node),
+            StmtKind::If(node) => self.print_if(node),
+            StmtKind::While(node) => self.print_while(node),
+            StmtKind::Return(node) => self.print_return(node),
+            StmtKind::Raise(node) => self.print_raise(node),
         }
     }
 

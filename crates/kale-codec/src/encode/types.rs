@@ -4,7 +4,7 @@ use kale_syntax::ast::{BinOp, Ident, Literal, UnOp};
 
 impl Encode for Ident {
     fn encode(&self, encoder: &mut Encoder) {
-        encoder.encode(&self.as_bytes().to_vec());
+        encoder.encode(&self.as_str());
     }
 }
 

@@ -2,8 +2,8 @@ use crate::object::Object;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("undefined variable: {0}")]
-    UndefinedVariable(String),
+    #[error("cannot find `{0}` in this scope")]
+    Undefined(String),
     #[error("missing argument at index {0}")]
     MissingArg(usize),
     #[error("type error: {0}")]
@@ -12,6 +12,8 @@ pub enum Error {
     Raised(Object),
     #[error("invalid assignment target")]
     InvalidAssign,
+    #[error("index {index} out of bounds for length {len}")]
+    IndexOutOfBounds { index: usize, len: usize }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

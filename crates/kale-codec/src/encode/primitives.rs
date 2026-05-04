@@ -1,3 +1,4 @@
+use kale_syntax::span::{Span, Spanned};
 use crate::encode::{Encode, Encoder};
 
 macro_rules! impl_encode {
@@ -29,5 +30,27 @@ impl Encode for bool {
 impl Encode for char {
     fn encode(&self, encoder: &mut Encoder) {
         encoder.encode(&(*self as u32));
+    }
+}
+
+impl Encode for &str {
+    fn encode(&self, encoder: &mut Encoder) {
+        encoder.encode(&self.as_bytes().to_vec());
+    }
+}
+
+impl Encode for Span {
+    fn encode(&self, encoder: &mut Encoder) {
+        encoder
+            .encode(&self.start())
+            .encode(&self.end());
+    }
+}
+
+impl<T: Encode> Encode for Spanned<T> {
+    fn encode(&self, encoder: &mut Encoder) {
+        encoder
+            .encode(&self.span())
+            .encode(self.inner());
     }
 }

@@ -19,11 +19,23 @@ impl<'a> Lexer<'a> {
         let mut tokens = Vec::new();
 
         loop {
-            self.cursor.advance_while(char::is_whitespace);
+            self.skip_trivia();
             if self.cursor.is_at_end() { break; }
             tokens.push(self.scan_token()?);
         }
 
         Ok(tokens)
+    }
+
+    fn skip_trivia(&mut self) {
+        loop {
+            self.cursor.advance_while(char::is_whitespace);
+
+            if self.cursor.peek() == Some('#') {
+                self.cursor.advance_while(|c| c != '\n');
+            } else {
+                break;
+            }
+        }
     }
 }

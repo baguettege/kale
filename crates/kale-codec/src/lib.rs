@@ -2,18 +2,25 @@ mod decode;
 mod encode;
 mod error;
 mod tag;
+mod file;
 
 pub use error::{Error, Result};
+pub use file::Kast;
+
 use crate::decode::Decoder;
 use crate::encode::Encoder;
-use kale_syntax::ast::Program;
 
-pub fn encode(program: &Program) -> Vec<u8> {
+pub fn encode(kast: &Kast) -> Vec<u8> {
     let mut encoder = Encoder::new();
-    encoder.encode(program);
+    encoder
+        .encode(&kast.source)
+        .encode(&kast.program);
     encoder.into_bytes()
 }
 
-pub fn decode(bytes: &[u8]) -> Result<Program> {
-    Decoder::new(bytes).decode()
+pub fn decode(bytes: &[u8]) -> Result<Kast> {
+    let mut decoder = Decoder::new(bytes);
+    let source = decoder.decode::<String>()?;
+    let program = decoder.decode()?;
+    Ok(Kast::new(source, program))
 }

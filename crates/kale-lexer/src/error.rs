@@ -1,12 +1,14 @@
+use kale_syntax::span::Spanned;
+
+pub type Error = Spanned<ErrorKind>;
+
 #[derive(Debug, thiserror::Error)]
-pub enum Error {
+pub enum ErrorKind {
     #[error("unexpected eof")]
     UnexpectedEof,
-    #[error("unexpected char: {0}")]
+    #[error("unexpected char `{0}`")]
     UnexpectedChar(char),
-    #[error("expected char: {0}")]
-    ExpectedChar(char),
-    #[error("invalid num: {0}")]
+    #[error("invalid num `{0}`")]
     InvalidNum(String),
 }
 

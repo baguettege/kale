@@ -1,4 +1,5 @@
 mod from {
+    use crate::Error;
     use crate::object::*;
 
     macro_rules! immutable {
@@ -64,10 +65,32 @@ mod from {
     impl_from!(BoundMethod, bound => Self::Bound(immutable!(bound)));
     impl_from!(StructDef, def => Self::StructDef(immutable!(def)));
     impl_from!(Struct, instance => Self::Struct(mutable!(instance)));
+
+    impl<T: NativeObject> From<T> for Object {
+        fn from(object: T) -> Self {
+            Self::Native(mutable!(object))
+        }
+    }
+
+    impl TryFrom<usize> for Object {
+        type Error = Error;
+
+        fn try_from(value: usize) -> Result<Self, Self::Error> {
+            const MAX_SAFE: usize = 1usize << 53;
+
+            if value <= MAX_SAFE {
+                Ok((value as f64).into())
+            } else {
+                Err(Error::raise("number exceeds safe integer limit"))
+            }
+        }
+    }
 }
 
 mod try_from {
     use crate::object::*;
+    use crate::Error;
+    use num_traits::ToPrimitive;
 
     macro_rules! impl_try_from {
         ($variant:ident($target:ty), $ty:expr) => {
@@ -96,4 +119,18 @@ mod try_from {
     impl_try_from!(Struct(Mutable<Struct>), Type::Struct);
     impl_try_from!(Native(Mutable<dyn NativeObject>), Type::Native);
     impl_try_from!(NativeFn(NativeFn), Type::NativeFn);
+
+    impl TryFrom<Object> for usize {
+        type Error = Error;
+
+        fn try_from(object: Object) -> Result<Self, Self::Error> {
+            let f: f64 = object.try_into()?;
+
+            if f.fract() != 0.0 {
+                Err(Error::raise("number is not an integer"))
+            } else {
+                f.to_usize().ok_or(Error::raise("invalid number"))
+            }
+        }
+    }
 }

@@ -1,9 +1,9 @@
 use crate::decode::{Decode, Decoder};
 use crate::tag::AstTag;
 use crate::{Error, Result};
-use kale_syntax::ast::{Binary, Call, Closure, Expr, Ident, List, Literal, Member, Unary};
+use kale_syntax::ast::{Binary, Call, Closure, Expr, ExprKind, Ident, List, Literal, Member, Unary};
 
-impl Decode for Expr {
+impl Decode for ExprKind {
     fn decode(decoder: &mut Decoder) -> Result<Self> {
         Ok(match decoder.decode::<AstTag>()? {
             AstTag::Ident => decoder.decode::<Ident>()?.into(),

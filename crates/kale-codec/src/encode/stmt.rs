@@ -1,8 +1,8 @@
-use kale_syntax::ast::{Assign, FnDef, If, Let, Module, Raise, Return, Stmt, Struct, While};
+use kale_syntax::ast::{Assign, FnDef, If, Let, Module, Raise, Return, StmtKind, Struct, While};
 use crate::encode::{Encode, Encoder};
 use crate::tag::AstTag;
 
-impl Encode for Stmt {
+impl Encode for StmtKind {
     fn encode(&self, encoder: &mut Encoder) {
         fn tagged<T: Encode>(encoder: &mut Encoder, tag: AstTag, value: &T) {
             encoder

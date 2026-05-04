@@ -1,7 +1,10 @@
 use std::fmt;
+use crate::span::Spanned;
+
+pub type Token = Spanned<TokenKind>;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Token {
+pub enum TokenKind {
     Nil,
     Num(f64),
     Bool(bool),
@@ -35,9 +38,11 @@ pub enum Token {
     RBrace,
     LBrack,
     RBrack,
+
     Comma,
     Semicolon,
     Dot,
+    Pipe,
 
     Fn,
     Return,
@@ -50,7 +55,7 @@ pub enum Token {
     Raise,
 }
 
-impl fmt::Display for Token {
+impl fmt::Display for TokenKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Nil => write!(f, "nil"),
@@ -89,6 +94,7 @@ impl fmt::Display for Token {
             Self::Comma => write!(f, ","),
             Self::Semicolon => write!(f, ";"),
             Self::Dot => write!(f, "."),
+            Self::Pipe => write!(f, "|"),
 
             Self::Fn => write!(f, "fn"),
             Self::Return => write!(f, "return"),

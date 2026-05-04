@@ -1,18 +1,18 @@
 use crate::ast::pretty::Printer;
-use crate::ast::{Binary, Call, Closure, Expr, List, Member, Unary};
+use crate::ast::{Binary, Call, Closure, Expr, ExprKind, List, Member, Unary};
 use std::fmt::Result;
 
 impl Printer<'_, '_> {
     pub(crate) fn print_expr(&mut self, expr: &Expr) -> Result {
-        match expr {
-            Expr::Literal(lit) => self.print_literal(lit),
-            Expr::Ident(ident) => self.print_ident(ident),
-            Expr::Call(node) => self.print_call(node),
-            Expr::Binary(node) => self.print_binary(node),
-            Expr::Unary(node) => self.print_unary(node),
-            Expr::List(node) => self.print_list(node),
-            Expr::Closure(node) => self.print_closure(node),
-            Expr::Member(node) => self.print_member(node),
+        match expr.inner() {
+            ExprKind::Literal(lit) => self.print_literal(lit),
+            ExprKind::Ident(ident) => self.print_ident(ident),
+            ExprKind::Call(node) => self.print_call(node),
+            ExprKind::Binary(node) => self.print_binary(node),
+            ExprKind::Unary(node) => self.print_unary(node),
+            ExprKind::List(node) => self.print_list(node),
+            ExprKind::Closure(node) => self.print_closure(node),
+            ExprKind::Member(node) => self.print_member(node),
         }
     }
 

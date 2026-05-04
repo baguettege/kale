@@ -2,11 +2,11 @@ use kale_runtime::env::Globals;
 use kale_runtime::object::{Module, Object};
 use kale_syntax::ast::Ident;
 
-pub type Init = fn(&mut Setup);
+pub type Loader = fn(&mut Registry);
 
-pub struct Setup<'a>(&'a mut Globals);
+pub struct Registry<'a>(&'a mut Globals);
 
-impl<'a> Setup<'a> {
+impl<'a> Registry<'a> {
     pub(crate) fn new(globals: &'a mut Globals) -> Self {
         Self(globals)
     }
@@ -23,10 +23,10 @@ impl<'a> Setup<'a> {
     pub fn module(
         &mut self,
         ident: impl Into<Ident>,
-        f: impl FnOnce(Setup),
+        f: impl FnOnce(Registry),
     ) -> &mut Self {
         let mut globals = Globals::new();
-        f(Setup::new(&mut globals));
+        f(Registry::new(&mut globals));
 
         let module = Module::from(globals);
         self.define(ident, module);

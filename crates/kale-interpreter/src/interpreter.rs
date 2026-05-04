@@ -7,30 +7,38 @@ mod call;
 
 use kale_runtime::env::{Env, Globals};
 use kale_syntax::ast::Program;
-use crate::setup::{Init, Setup};
+use kale_syntax::span::Span;
+use crate::registry::{Loader, Registry};
+use crate::Result;
 use crate::interpreter::flow::Signal;
 
 pub(crate) struct Interpreter {
     env: Env,
+    // the current span being evaluated
+    // stored as a field, so `Interpreter::error` always has access
+    span: Span,
 }
 
 impl Interpreter {
-    pub(crate) fn new(inits: &[Init]) -> Self {
+    pub(crate) fn new(loaders: &[Loader]) -> Self {
         let mut globals = Globals::new();
-        let mut setup = Setup::new(&mut globals);
+        let mut setup = Registry::new(&mut globals);
         
-        for init in inits {
+        for init in loaders {
             init(&mut setup);
         }
         
-        Self { env: Env::new(globals) }
+        Self {
+            env: Env::new(globals),
+            span: Span::new(0, 0),
+        }
     }
 
-    pub(crate) fn run(mut self, program: &Program) -> kale_runtime::Result<()> {
+    pub(crate) fn run(mut self, program: &Program) -> Result<()> {
         self.eval(program)
     }
 
-    fn eval(&mut self, program: &Program) -> kale_runtime::Result<()> {
+    fn eval(&mut self, program: &Program) -> Result<()> {
         let result = self.with_env(
             self.env.isolate(),
             |this| this.eval_block(&program.0),

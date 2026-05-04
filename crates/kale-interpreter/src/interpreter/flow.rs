@@ -1,5 +1,5 @@
-use kale_runtime::Error;
 use kale_runtime::object::Object;
+use crate::error::Error;
 
 #[derive(Debug)]
 pub(super) enum Signal {

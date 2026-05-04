@@ -1,0 +1,14 @@
+[workspace]
+resolver = "3"
+members = [
+    "bin/kale",
+    "bin/playground",
+    "crates/kale-api",
+    "crates/kale-codec",
+    "crates/kale-interpreter",
+    "crates/kale-lexer",
+    "crates/kale-parser", "crates/kale-report",
+    "crates/kale-runtime",
+    "crates/kale-stdlib",
+    "crates/kale-syntax",
+]

@@ -1,0 +1,10 @@
+[package]
+name = "kale-report"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+kale-syntax = { path = "../kale-syntax" }
+kale-lexer = { path = "../kale-lexer" }
+kale-parser = { path = "../kale-parser" }
+kale-interpreter = { path = "../kale-interpreter" }

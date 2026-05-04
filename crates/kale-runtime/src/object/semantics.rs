@@ -34,7 +34,8 @@ impl Object {
 
     pub fn display(&self) -> String {
         match self {
-            // unquote the string for user-facing ouput
+            // unquote the string/char for user-facing output
+            Self::Char(c) => c.to_string(),
             Self::Str(s) => s.to_string(),
             _ => format!("{self}"),
         }

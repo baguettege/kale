@@ -13,8 +13,8 @@ impl Interpreter {
             Object::Bound(bound) => self.call_bound(bound, args),
             Object::StructDef(def) => self.call_struct_def(def, args).map(Into::into),
             Object::NativeFn(native) => self.call_native_fn(native, args),
-            _ => Err(Error::TypeError(format!(
-                "{} is not callable", callee.ty()
+            _ => Err(self.error(Error::TypeError(
+                format!("{} is not callable", callee.ty()),
             )).into()),
         }
     }
@@ -51,10 +51,13 @@ impl Interpreter {
                 let ctx = Ctx::new(self);
                 let object = bound.receiver();
                 let args = Args::new(&args);
-                (native.func)(ctx, object, args).map_err(Into::into)
+                (native.func)(ctx, object, args).map_err(|e| self.error(e).into())
             },
             Method::Closure(closure) => {
                 args.insert(0, bound.receiver());
+                self.call_closure(closure, args)
+            },
+            Method::Static(closure) => {
                 self.call_closure(closure, args)
             },
         }
@@ -82,6 +85,6 @@ impl Interpreter {
     ) -> Result<Object> {
         let ctx = Ctx::new(self);
         let args = Args::new(&args);
-        (native.func)(ctx, args).map_err(Into::into)
+        (native.func)(ctx, args).map_err(|e| self.error(e).into())
     }
 }

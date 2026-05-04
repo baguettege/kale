@@ -1,3 +1,4 @@
+use kale_syntax::span::{Span, Spanned};
 use crate::decode::{Decode, Decoder};
 use crate::{Error, Result};
 
@@ -28,7 +29,7 @@ impl Decode for bool {
         match decoder.decode::<u8>()? {
             0 => Ok(false),
             1 => Ok(true),
-            v => Err(Error::InvalidData(format!("invalid bool: {v}")))
+            b => Err(Error::InvalidData(format!("invalid bool: {b}")))
         }
     }
 }
@@ -38,5 +39,21 @@ impl Decode for char {
         let b = decoder.decode::<u32>()?;
         char::from_u32(b).ok_or_else(|| Error::InvalidData(
             format!("invalid char as u32: {b}")))
+    }
+}
+
+impl Decode for Span {
+    fn decode(decoder: &mut Decoder) -> Result<Self> {
+        let start = decoder.decode()?;
+        let end = decoder.decode()?;
+        Ok(Self::new(start, end))
+    }
+}
+
+impl<T: Decode> Decode for Spanned<T> {
+    fn decode(decoder: &mut Decoder) -> Result<Self> {
+        let span = decoder.decode()?;
+        let inner = decoder.decode()?;
+        Ok(Self::new(span, inner))
     }
 }

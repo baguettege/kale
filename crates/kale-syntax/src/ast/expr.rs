@@ -1,7 +1,10 @@
 use crate::ast::{BinOp, Block, Ident, Literal, UnOp};
+use crate::span::Spanned;
+
+pub type Expr = Spanned<ExprKind>;
 
 #[derive(Debug, Clone)]
-pub enum Expr {
+pub enum ExprKind {
     Literal(Literal),
     Ident(Ident),
     
@@ -55,4 +58,4 @@ node! {
     }
 }
 
-impl_from!(Expr => Literal, Ident, Call, Binary, Unary, List, Closure, Member);
+impl_from!(ExprKind => Literal, Ident, Call, Binary, Unary, List, Closure, Member);
